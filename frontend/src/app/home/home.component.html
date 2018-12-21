@@ -1,0 +1,667 @@
+﻿<mat-card>
+  <mat-card-header>
+    <mat-card-title class="header-with-fb-logo-mini">
+      <img class="fb-logo-mini" src="assets/images/fintechblocks_logo_mini.png">
+      <h2>Hi {{currentUser.username}}!</h2>
+      <button mat-raised-button class="header-button-right" [routerLink]="['/login']">{{'Logout' | uppercase}}</button>
+    </mat-card-title>
+  </mat-card-header>
+</mat-card>
+
+<section>
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <h4 *ngIf="!authorizedPermissions || authorizedPermissions.length == 0 || !disabledAccountRequestData">Create account request</h4>
+        <h4 *ngIf="authorizedPermissions && authorizedPermissions.length != 0  && disabledAccountRequestData">Created account request</h4>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-card-subtitle>
+        <h6>1. Choose type of permission</h6>
+      </mat-card-subtitle>
+      <div *ngIf="loadingAccountRequestData" class="account-request-card-content">
+        <div *ngFor="let permission of keys(permissions)">
+          <mat-checkbox [disabled]="disabledAccountRequestData" *ngIf="permission != 'ReadProducts'" [checked]="isAuthorizedPermission(permissions[permission])"
+            (click)="selectPermission(permissions[permission])">{{permission}}</mat-checkbox>
+        </div>
+      </div>
+      <mat-card-subtitle>
+        <h6>2. Choose transaction period</h6>
+      </mat-card-subtitle>
+      <div class="account-request-card-content">
+        <div class="account-request-transactions-date-interval-flex">          
+          <div>
+            <mat-form-field>
+              <input id="account-request-from-transaction-date" [disabled]="disabledAccountRequestData" matInput [matDatepicker]="fromAccountRequestTransactionDate" placeholder="Choose transactions start date" [(ngModel)]="fromAccountRequestTransactionDateTime"
+                (ngModelChange)="modifyfromAccountRequestTransactionDateTime($event)">
+              <mat-datepicker-toggle matSuffix [for]="fromAccountRequestTransactionDate"></mat-datepicker-toggle>
+              <mat-datepicker #fromAccountRequestTransactionDate></mat-datepicker>
+            </mat-form-field>            
+          </div>
+          <hr class="transactions-hr">
+          <div>
+            <mat-form-field>
+              <input id="account-request-to-transaction-date" [disabled]="disabledAccountRequestData" matInput [matDatepicker]="toAccountRequestTransactionDate" placeholder="Choose transactions end date" [(ngModel)]="toAccountRequestTransactionDateTime"
+                (ngModelChange)="modifytoAccountRequestTransactionDateTime($event)">
+              <mat-datepicker-toggle matSuffix [for]="toAccountRequestTransactionDate"></mat-datepicker-toggle>
+              <mat-datepicker #toAccountRequestTransactionDate></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+      <mat-card-subtitle>
+        <h6>3. Choose expiration date</h6>
+      </mat-card-subtitle>
+      <div class="account-request-card-content">
+        <mat-form-field>
+          <input id="account-request-expiration-date" [disabled]="disabledAccountRequestData" matInput [matDatepicker]="expirationPiker" placeholder="Choose expiration date" [(ngModel)]="expirationDateTime"
+            (ngModelChange)="modifyExpirationDateTimee($event)">
+          <mat-datepicker-toggle matSuffix [for]="expirationPiker"></mat-datepicker-toggle>
+          <mat-datepicker #expirationPiker></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+    <mat-card-actions>
+      <button id="create-button" *ngIf="!authorizedPermissions || authorizedPermissions.length == 0 || !disabledAccountRequestData" mat-raised-button [disabled]='selectedPermissions.length == 0' (click)="createAccountRequest()">
+        <label >{{'Create' | uppercase}}</label>
+      </button>
+      <button id="edit-button" mat-raised-button (click)="disabledAccountRequestData=!disabledAccountRequestData">
+        <label *ngIf="authorizedPermissions && authorizedPermissions.length != 0 && disabledAccountRequestData">{{'Edit' | uppercase}}</label>
+      </button>
+      <button id="cancel-button" mat-raised-button style="right: 4px; position: absolute;"  (click)="loadingAccountRequestData=false; disabledAccountRequestData=!disabledAccountRequestData; getAccountRequest()">
+        <label  *ngIf="authorizedPermissions && authorizedPermissions.length != 0 && !disabledAccountRequestData">{{'Cancel' | uppercase}}</label>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</section>
+
+<section *ngIf="authorizedPermissions && (authorizedPermissions.includes('ReadAccountsBasic') || authorizedPermissions.includes('ReadAccountsDetail'))">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Accounts by account ID</h4>
+        <mat-form-field class="example-full-width">
+          <input class="add-account-id" matInput placeholder="Account ID" #accountId>
+        </mat-form-field>
+        <button name="get_data_by_account_id" table_id="account-by-id-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getAccountById(accountId.value)">{{'Get
+          data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="accountDataSource">
+        <table id="account-by-id-table" mat-table [dataSource]="accountDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef>AccountId </th>
+            <td id="account-by-id-account-id" mat-cell *matCellDef="let element"> {{element.AccountId}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="nickname">
+            <th mat-header-cell *matHeaderCellDef> Nickname </th>
+            <td id="account-by-id-nickname" mat-cell *matCellDef="let element"> {{element.Nickname}} </td>
+          </ng-container>
+          <ng-container matColumnDef="currency">
+            <th mat-header-cell *matHeaderCellDef> Currency </th>
+            <td id="account-by-id-currency" mat-cell *matCellDef="let element"> {{element.Currency}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="accountsDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: accountsDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyAccountsById" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Accounts</h4>
+        <button name="get_data" table_id="account-table" mat-raised-button class="header-button-right" (click)="getAccounts()">{{'Get data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="accountsDataSource">
+        <table id="account-table" mat-table [dataSource]="accountsDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef>AccountId </th>
+            <td id="account-accountId" mat-cell *matCellDef="let element"> {{element.AccountId}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="nickname">
+            <th mat-header-cell *matHeaderCellDef> Nickname </th>
+            <td id="account-nickname" mat-cell *matCellDef="let element"> {{element.Nickname}} </td>
+          </ng-container>
+          <ng-container matColumnDef="currency">
+            <th mat-header-cell *matHeaderCellDef> Currency </th>
+            <td id="account-currency" mat-cell *matCellDef="let element"> {{element.Currency}} </td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="accountsDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: accountsDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyAccounts" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</section>
+
+<section *ngIf="authorizedPermissions && (authorizedPermissions.includes('ReadTransactionsCredits') || authorizedPermissions.includes('ReadTransactionsDebits'))">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Transactions by account ID</h4>
+        <mat-form-field class="example-full-width">
+          <input class="add-transactions-account-id" matInput placeholder="Account ID" #accountId>
+        </mat-form-field>
+        <button name="get_data_by_account_id" table_id="transactions-by-account-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getTransactionByAccountId(accountId.value)">{{'Get
+          data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="transactionsByAccountDataSource">
+        <table id="transactions-by-account-table" mat-table [dataSource]="transactionsByAccountDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef>AccountId</th>
+            <td id="transactions-by-account-account-id" mat-cell *matCellDef="let element">
+              {{element.AccountId}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef>Amount</th>
+            <td id="transactions-by-account-amount" mat-cell *matCellDef="let element"> {{element.Amount.Amount}}</td>
+          </ng-container>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef> Status </th>
+            <td id="transactions-by-account-status" mat-cell *matCellDef="let element"> {{element.Status}} </td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="transactionsDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: transactionsDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyTransactionsById" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Transactions</h4>
+        <div class="transactions-date-interval-flex">
+          <div>
+            <mat-form-field>
+              <input id="transactions-from-date" matInput [matDatepicker]="fromDate" placeholder="Choose transactions start date" [(ngModel)]="fromTransactionDateTime"
+                (ngModelChange)="modifyfromTransactionDateTime($event)">
+              <mat-datepicker-toggle matSuffix [for]="fromDate"></mat-datepicker-toggle>
+              <mat-datepicker #fromDate></mat-datepicker>
+            </mat-form-field>            
+          </div>
+          <hr class="transactions-list-hr">
+          <div>
+            <mat-form-field>
+              <input id="transactions-to-date" matInput [matDatepicker]="toDate" placeholder="Choose transactions end date" [(ngModel)]="toTransactionDateTime"
+                (ngModelChange)="modifytoTransactionDateTime($event)">
+              <mat-datepicker-toggle matSuffix [for]="toDate"></mat-datepicker-toggle>
+              <mat-datepicker #toDate></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+        <button name="get_data" table_id="transactions-table" mat-raised-button class="header-button-right" (click)="getTransactions()">{{'Get data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="transactionsDataSource">
+        <table id="transactions-table" mat-table [dataSource]="transactionsDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef>AccountId</th>
+            <td id="transactions-account-id" mat-cell *matCellDef="let element">
+              {{element.AccountId}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef>Amount</th>
+            <td id="transactions-amount" mat-cell *matCellDef="let element"> {{element.Amount.Amount}}</td>
+          </ng-container>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef> Status </th>
+            <td id="transactions-status" mat-cell *matCellDef="let element"> {{element.Status}} </td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="transactionsDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: transactionsDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyTransactions" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</section>
+
+<section *ngIf="authorizedPermissions && authorizedPermissions.includes('ReadBalances')">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Balances by account ID</h4>
+        <mat-form-field class="example-full-width">
+          <input id="balance-account-id" matInput placeholder="Account ID" #accountId>
+        </mat-form-field>
+        <button name="get_data_by_account_id" table_id="balances-by-account-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getBalanceByAccountId(accountId.value)">{{'Get
+          data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="balancesByAccountDataSource">
+        <table id="balances-by-account-table" mat-table [dataSource]="balancesByAccountDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef> AccountId </th>
+            <td id="balances-by-account-id-account-id" mat-cell *matCellDef="let element"> {{element.AccountId}}</td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef> Amount </th>
+            <td id="balances-by-account-id-amount" mat-cell *matCellDef="let element"> {{element.Amount.Amount}} {{element.Amount.Currency}} </td>
+          </ng-container>
+          <ng-container matColumnDef="dateTime">
+            <th mat-header-cell *matHeaderCellDef> DateTime </th>
+            <td id="balances-by-account-id-date-time" mat-cell *matCellDef="let element"> {{element.DateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="balancesDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: balancesDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyBalancesById" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Balances</h4>
+        <button name="get_data" table_id="balances-table" mat-raised-button class="header-button-right" (click)="getBalances()">{{'Get data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="balancesDataSource">
+        <table id="balances-table" mat-table [dataSource]="balancesDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef> AccountId </th>
+            <td id="balances-account-id" mat-cell *matCellDef="let element"> {{element.AccountId}}</td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef> Amount </th>
+            <td id="balances-amount" mat-cell *matCellDef="let element"> {{element.Amount.Amount}} {{element.Amount.Currency}}</td>
+          </ng-container>
+          <ng-container matColumnDef="dateTime">
+            <th mat-header-cell *matHeaderCellDef> DateTime </th>
+            <td id="balances-date-time" mat-cell *matCellDef="let element"> {{element.DateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="balancesDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: balancesDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyBalances" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</section>
+
+<section *ngIf="authorizedPermissions && (authorizedPermissions.includes('ReadBeneficiariesBasic') || authorizedPermissions.includes('ReadBeneficiariesDetail'))">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Beneficiaries by account ID</h4>
+        <mat-form-field class="example-full-width">
+          <input id="add-beneficiaries-account-id" matInput placeholder="Account ID" #accountId>
+        </mat-form-field>
+        <button name="get_data_by_account_id" table_id="beneficiaries-by-account-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getBeneficiariesByAccount(accountId.value)">{{'Get
+          data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="beneficiariesByAccountDataSource">
+        <table id="beneficiaries-by-account-table" mat-table [dataSource]="beneficiariesByAccountDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef>AccountId</th>
+            <td id="beneficiaries-by-account-id-account-id" mat-cell *matCellDef="let element">
+              {{element.AccountId}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="reference">
+            <th mat-header-cell *matHeaderCellDef>Reference </th>
+            <td id="beneficiaries-by-account-id-reference" mat-cell *matCellDef="let element"> {{element.Reference}}</td>
+          </ng-container>
+          <ng-container matColumnDef="creditorAccount">
+            <th mat-header-cell *matHeaderCellDef>CreditorAccount</th>
+            <td id="beneficiaries-by-account-id-creditor-account" mat-cell *matCellDef="let element"> {{element.CreditorAccount}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="beneficiariesDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: beneficiariesDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyBeneficiariesById" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Beneficiaries</h4>
+        <button name="get_data" table_id="beneficiaries-table" mat-raised-button class="header-button-right" (click)="getBeneficiaries()">{{'Get data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="beneficiariesDataSource">
+        <table id="beneficiaries-table" mat-table [dataSource]="beneficiariesDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef>AccountId</th>
+            <td id="beneficiaries-accountId" mat-cell *matCellDef="let element">{{element.AccountId}}</td>
+          </ng-container>
+          <ng-container matColumnDef="reference">
+            <th mat-header-cell *matHeaderCellDef>Reference </th>
+            <td id="beneficiaries-reference" mat-cell *matCellDef="let element"> {{element.Reference}}</td>
+          </ng-container>
+          <ng-container matColumnDef="creditorAccount">
+            <th mat-header-cell *matHeaderCellDef>CreditorAccount</th>
+            <td id="beneficiaries-creditor-account" mat-cell *matCellDef="let element"> {{element.CreditorAccount}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="beneficiariesDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: beneficiariesDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyBeneficiaries" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</section>
+
+<section *ngIf="authorizedPermissions && authorizedPermissions.includes('ReadDirectDebits')">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Direct debits by account ID</h4>
+        <mat-form-field class="example-full-width">
+          <input id="add-direct-debits-account-id" matInput placeholder="Account ID" #accountId>
+        </mat-form-field>
+        <button name="get_data_by_account_id" table_id="direct-debits-by-account-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getDirectDebitsByAccount(accountId.value)">{{'Get
+          data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="directDebitsByAccountDataSource">
+        <table id="direct-debits-by-account-table" mat-table [dataSource]="directDebitsByAccountDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef>AccountId</th>
+            <td id="direct-debits-by-account-id-account-id" mat-cell *matCellDef="let element">
+              {{element.AccountId}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td id="direct-debits-by-account-id-name" mat-cell *matCellDef="let element">
+              {{element.Name}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef> Amount </th>
+            <td id="direct-debits-by-account-id-amount" mat-cell *matCellDef="let element"> {{element.PreviousPaymentAmount.Amount}}
+              {{element.PreviousPaymentAmount.Currency}}</td>
+          </ng-container>
+          <ng-container matColumnDef="previousPaymentDateTime">
+            <th mat-header-cell *matHeaderCellDef> PreviousPaymentDateTime </th>
+            <td id="direct-debits-by-account-id-previous-payment-date" mat-cell *matCellDef="let element"> {{element.PreviousPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="directDebitsDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: directDebitsDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyDirectDebitsById" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Direct debits</h4>
+        <button name="get_data" table_id="direct-debits-table" mat-raised-button class="header-button-right" (click)="getDirectDebits()">{{'Get data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="directDebitsDataSource">
+        <table id="direct-debits-table" mat-table [dataSource]="directDebitsDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef>AccountId</th>
+            <td id="direct-debits-account-id" mat-cell *matCellDef="let element">
+              {{element.AccountId}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td id="direct-debits-name" mat-cell *matCellDef="let element">
+              {{element.Name}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef> Amount </th>
+            <td id="direct-debits-previous-payment-amount" mat-cell *matCellDef="let element"> {{element.PreviousPaymentAmount.Amount}}
+              {{element.PreviousPaymentAmount.Currency}}</td>
+          </ng-container>
+          <ng-container matColumnDef="previousPaymentDateTime">
+            <th mat-header-cell *matHeaderCellDef> PreviousPaymentDateTime </th>
+            <td id="direct-debits-previous-payment-date" mat-cell *matCellDef="let element"> {{element.PreviousPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="directDebitsDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: directDebitsDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyDirectDebits" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</section>
+
+<section *ngIf="authorizedPermissions && authorizedPermissions.includes('ReadStandingOrdersBasic') || authorizedPermissions.includes('ReadStandingOrdersDetail')">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Standing orders by account ID</h4>
+        <mat-form-field class="example-full-width">
+          <input id="add-standing-orders-account-id" matInput placeholder="Account ID" #accountId>
+        </mat-form-field>
+        <button name="get_data_by_account_id" table_id="standing-orders-by-account-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getStandingOrdersByAccount(accountId.value)">{{'Get
+          data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="standingOrdersByAccountDataSource">
+        <table id="standing-orders-by-account-table" mat-table [dataSource]="standingOrdersByAccountDataSource">
+          <ng-container matColumnDef="CreditDebitIndicator">
+            <th mat-header-cell *matHeaderCellDef>CreditDebitIndicator </th>
+            <td id="standing-orders-by-account-id-credit-debit-indicator" mat-cell *matCellDef="let element">
+              {{element.CreditDebitIndicator}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef> AccountId </th>
+            <td id="standing-orders-by-account-id-account-id" mat-cell *matCellDef="let element"> {{element.AccountId}} </td>
+          </ng-container>
+          <ng-container matColumnDef="firstPaymentDateTime">
+            <th mat-header-cell *matHeaderCellDef> FirstPaymentDateTime </th>
+            <td id="standing-orders-by-account-id-first-payment-date" mat-cell *matCellDef="let element"> {{element.FirstPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="nextPaymentDateTime">
+            <th mat-header-cell *matHeaderCellDef> NextPaymentDateTime </th>
+            <td id="standing-orders-by-account-id-next-payment-date" mat-cell *matCellDef="let element"> {{element.NextPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="finalPaymentDateTime">
+            <th mat-header-cell *matHeaderCellDef> FinalPaymentDateTime </th>
+            <td id="standing-orders-by-account-id-final-payment-date" mat-cell *matCellDef="let element"> {{element.FinalPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="standingOrdersDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: standingOrdersDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyStandingOrdersById" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Standing orders</h4>
+        <button name="get_data" table_id="standing-orders-table" mat-raised-button class="header-button-right" (click)="getStandingOrders()">{{'Get data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="standingOrdersDataSource">
+        <table id="standing-orders-table" mat-table [dataSource]="standingOrdersDataSource">
+          <ng-container matColumnDef="CreditDebitIndicator">
+            <th mat-header-cell *matHeaderCellDef>CreditDebitIndicator </th>
+            <td id="standing-orders-credit-debit" mat-cell *matCellDef="let element">
+              {{element.CreditDebitIndicator}}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef> AccountId </th>
+            <td id="standing-orders-credit-account-id" mat-cell *matCellDef="let element"> {{element.AccountId}} </td>
+          </ng-container>
+          <ng-container matColumnDef="firstPaymentDateTime">
+            <th mat-header-cell *matHeaderCellDef> FirstPaymentDateTime </th>
+            <td id="standing-orders-first-payment-date" mat-cell *matCellDef="let element"> {{element.FirstPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="nextPaymentDateTime">
+            <th mat-header-cell *matHeaderCellDef> NextPaymentDateTime </th>
+            <td id="standing-orders-next-payment-date"  mat-cell *matCellDef="let element"> {{element.NextPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="finalPaymentDateTime">
+            <th mat-header-cell *matHeaderCellDef> FinalPaymentDateTime </th>
+            <td id="standing-orders-final-payment-date" mat-cell *matCellDef="let element"> {{element.FinalPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="standingOrdersDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: standingOrdersDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyStandingOrders" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</section>

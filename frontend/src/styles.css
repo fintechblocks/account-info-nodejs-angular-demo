@@ -1,0 +1,36 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import "~@angular/material/prebuilt-themes/deeppurple-amber.css";
+
+.btn-primary {
+  background-color: #187697;
+  border-color: #187697;
+}
+
+.btn-link {
+  color: #187697;
+}
+
+a {
+  cursor: pointer
+}
+
+body {
+  font-family: 'Roboto';
+  color: #707070;
+}
+
+.jumbotron{
+  background: #F8F8F8;
+}
+
+.fb-logo-mini {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.header-with-fb-logo-mini {
+  display: flex !important;
+  margin: 20px 0px;
+}
+

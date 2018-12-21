@@ -1,0 +1,21 @@
+import { AuthorizationService } from './authorization.service';
+export * from './accountRequests.service';
+import { AccountRequestsService } from './accountRequests.service';
+export * from './accounts.service';
+import { AccountsService } from './accounts.service';
+export * from './balances.service';
+import { BalancesService } from './balances.service';
+export * from './beneficiaries.service';
+import { BeneficiariesService } from './beneficiaries.service';
+export * from './directDebits.service';
+import { DirectDebitsService } from './directDebits.service';
+export * from './permissions.service';
+import { PermissionsService } from './permissions.service';
+export * from './products.service';
+import { ProductsService } from './products.service';
+export * from './standingOrders.service';
+import { StandingOrdersService } from './standingOrders.service';
+export * from './transactions.service';
+import { TransactionsService } from './transactions.service';
+
+export const APIS = [AuthorizationService, AccountRequestsService, AccountsService, BalancesService, BeneficiariesService, DirectDebitsService, PermissionsService, ProductsService, StandingOrdersService, TransactionsService];

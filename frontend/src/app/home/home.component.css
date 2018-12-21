@@ -1,0 +1,122 @@
+.header-button-right {
+  right: 40px;
+  position: absolute;
+}
+
+.arrow-center {
+  text-align: center;
+}
+
+.card-header-display-flex {
+  display: flex;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  justify-content: center;
+  flex-direction: column;
+  -ms-flex-direction: column;
+  -webkit-flex-direction: column;
+  margin-bottom: 0px;
+}
+
+.account-request-data {
+  margin-top: 20px !important;
+  margin-left: 10px;
+}
+
+.h6, h6{
+  margin-top: .5rem;
+}
+
+
+
+/*just IE 10+*/
+
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .card-header-display-flex {
+    display: block;
+  }
+  .header-button-right {
+    top: 25px;
+  }
+}
+
+.mat-table {
+  width: 100%;
+}
+
+.mat-card {
+  margin-bottom: 20px;
+}
+
+.material-icons {
+  font-size: 18px;
+  color: #6c757d;
+}
+
+.empty-result-text {
+  margin: 5px 5px;
+  font-weight: bold;
+  color: #dc3545;
+}
+
+/deep/ .mat-checkbox-checked.mat-accent .mat-checkbox-background, .mat-checkbox-indeterminate.mat-accent .mat-checkbox-background {
+  background-color: #187697 !important;
+}
+
+.mat-raised-button {
+  font-weight: bold;
+  background: #187697;
+  color: white;
+}
+
+a {
+  color: #187697 !important;
+}
+
+.h4, h4, h2 {
+  margin-bottom: 0;
+  color: #707070;
+}
+
+.transactions-date-interval-flex {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  margin-top: 10px;
+}
+
+.to-transaction-date {
+  font-size: 15px;
+  margin: 0px 15px;
+}
+
+.account-request-transactions-date-interval-flex{
+  display: flex;
+  max-width: 500px;
+}
+.account-request-card-content{
+  margin-left: 10px;
+}
+.permissions-list{
+  margin: 10px 10px;
+}
+
+button label {
+  margin-bottom: 0px;
+}
+
+.transaction-hr{
+      border-top: 1px solid grey;
+      width: 10px;
+}
+
+.transactions-hr{
+  border-top: 1px solid grey;
+  width: 10px;
+}
+
+.transactions-list-hr{
+  border-top: 1px solid grey;
+  width: 10px;
+  margin: 1.5rem 2rem;
+}
