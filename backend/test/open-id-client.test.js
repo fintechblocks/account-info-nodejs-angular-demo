@@ -1,4 +1,4 @@
-const oidc_server_url = 'https://oidc.sandbox.mkb.hu';
+const oidc_server_url = 'https://oidc.sandbox.exampleBank.hu';
 const {
   expect
 } = require('chai');
@@ -10,7 +10,7 @@ const vo = require('vo');
 const fs = require('fs');
 
 const PRIVATE_KEY = fs.readFileSync('./test/private_key.txt');
-const WELL_KNOWN_URL = 'https://oidc.sandbox.mkb.hu/auth/realms/ftb-sandbox/.well-known/openid-configuration';
+const WELL_KNOWN_URL = 'https://oidc.sandbox.exampleBank.hu/auth/realms/ftb-sandbox/.well-known/openid-configuration';
 
 describe('new Client()', function () {
   it('should return access and refresh token (with client_secret)', function () {
@@ -18,7 +18,7 @@ describe('new Client()', function () {
       const issuer = new Issuer({
         token_endpoint: oidc_server_url + '/auth/realms/ftb-sandbox/protocol/openid-connect/token',
         token_endpoint_auth_signing_alg_values_supported: ['HS256', 'HS384'],
-        authorization_endpoint: 'https://oidc.sandbox.mkb.hu/auth/realms/ftb-sandbox/protocol/openid-connect/auth',
+        authorization_endpoint: 'https://oidc.sandbox.exampleBank.hu/auth/realms/ftb-sandbox/protocol/openid-connect/auth',
       });
 
       const client = new issuer.Client({

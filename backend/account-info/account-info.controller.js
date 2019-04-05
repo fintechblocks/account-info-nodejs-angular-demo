@@ -5,14 +5,14 @@ const authorizeJs = require('../_helpers/authorize');
 
 // routes
 router.post('/authorization-callback', postAuthenticationCode);
-router.post('/open-banking/v1.1/account-requests', createAccountRequest);
+router.post('/open-banking/v3.1/aisp/account-access-consents', createAccountAccessConsent);
 router.get('/authorization-url', getAuthorizationUrl);
-router.get('/open-banking/v1.1/*', getController);
+router.get('/open-banking/v3.1/aisp/*', getController);
 
 module.exports = router;
 
-function createAccountRequest(req, res, next) {
-    accountInfo.createAccountRequest(req, res)
+function createAccountAccessConsent(req, res, next) {
+    accountInfo.createAccountAccessConsent(req, res)
         .catch(err => next(err));
 }
 

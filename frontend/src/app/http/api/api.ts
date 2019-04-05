@@ -1,6 +1,5 @@
-import { AuthorizationService } from './authorization.service';
-export * from './accountRequests.service';
-import { AccountRequestsService } from './accountRequests.service';
+export * from './accountAccess.service';
+import { AccountAccessService } from './accountAccess.service';
 export * from './accounts.service';
 import { AccountsService } from './accounts.service';
 export * from './balances.service';
@@ -9,13 +8,12 @@ export * from './beneficiaries.service';
 import { BeneficiariesService } from './beneficiaries.service';
 export * from './directDebits.service';
 import { DirectDebitsService } from './directDebits.service';
-export * from './permissions.service';
-import { PermissionsService } from './permissions.service';
-export * from './products.service';
-import { ProductsService } from './products.service';
+export * from './scheduledPayments.service';
+import { ScheduledPaymentsService } from './scheduledPayments.service';
 export * from './standingOrders.service';
 import { StandingOrdersService } from './standingOrders.service';
+export * from './statements.service';
+import { StatementsService } from './statements.service';
 export * from './transactions.service';
 import { TransactionsService } from './transactions.service';
-
-export const APIS = [AuthorizationService, AccountRequestsService, AccountsService, BalancesService, BeneficiariesService, DirectDebitsService, PermissionsService, ProductsService, StandingOrdersService, TransactionsService];
+export const APIS = [AccountAccessService, AccountsService, BalancesService, BeneficiariesService, DirectDebitsService, ScheduledPaymentsService, StandingOrdersService, StatementsService, TransactionsService];

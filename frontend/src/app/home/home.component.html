@@ -12,40 +12,44 @@
   <mat-card>
     <mat-card-header>
       <mat-card-title>
-        <h4 *ngIf="!authorizedPermissions || authorizedPermissions.length == 0 || !disabledAccountRequestData">Create account request</h4>
-        <h4 *ngIf="authorizedPermissions && authorizedPermissions.length != 0  && disabledAccountRequestData">Created account request</h4>
+        <h4 *ngIf="!authorizedPermissions || authorizedPermissions.length == 0 || !disabledAccountAccessConsentData">Create
+          account request</h4>
+        <h4 *ngIf="authorizedPermissions && authorizedPermissions.length != 0  && disabledAccountAccessConsentData">Created
+          account request</h4>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <mat-card-subtitle>
         <h6>1. Choose type of permission</h6>
       </mat-card-subtitle>
-      <div *ngIf="loadingAccountRequestData" class="account-request-card-content">
+      <div *ngIf="loadingAccountAccessConsentData" class="account-access-consent-card-content">
         <div *ngFor="let permission of keys(permissions)">
-          <mat-checkbox [disabled]="disabledAccountRequestData" *ngIf="permission != 'ReadProducts'" [checked]="isAuthorizedPermission(permissions[permission])"
+          <mat-checkbox [disabled]="disabledAccountAccessConsentData" *ngIf="permission != 'ReadProducts'" [checked]="isAuthorizedPermission(permissions[permission])"
             (click)="selectPermission(permissions[permission])">{{permission}}</mat-checkbox>
         </div>
       </div>
       <mat-card-subtitle>
         <h6>2. Choose transaction period</h6>
       </mat-card-subtitle>
-      <div class="account-request-card-content">
-        <div class="account-request-transactions-date-interval-flex">          
+      <div class="account-access-consent-card-content">
+        <div class="account-access-consent-transactions-date-interval-flex">
           <div>
             <mat-form-field>
-              <input id="account-request-from-transaction-date" [disabled]="disabledAccountRequestData" matInput [matDatepicker]="fromAccountRequestTransactionDate" placeholder="Choose transactions start date" [(ngModel)]="fromAccountRequestTransactionDateTime"
-                (ngModelChange)="modifyfromAccountRequestTransactionDateTime($event)">
-              <mat-datepicker-toggle matSuffix [for]="fromAccountRequestTransactionDate"></mat-datepicker-toggle>
-              <mat-datepicker #fromAccountRequestTransactionDate></mat-datepicker>
-            </mat-form-field>            
+              <input id="account-access-consent-from-transaction-date" [disabled]="disabledAccountAccessConsentData"
+                matInput [matDatepicker]="fromAccountAccessConsentTransactionDate" placeholder="Choose transactions start date"
+                [(ngModel)]="fromAccountAccessConsentTransactionDateTime" (ngModelChange)="modifyfromAccountAccessConsentTransactionDateTime($event)">
+              <mat-datepicker-toggle matSuffix [for]="fromAccountAccessConsentTransactionDate"></mat-datepicker-toggle>
+              <mat-datepicker #fromAccountAccessConsentTransactionDate></mat-datepicker>
+            </mat-form-field>
           </div>
           <hr class="transactions-hr">
           <div>
             <mat-form-field>
-              <input id="account-request-to-transaction-date" [disabled]="disabledAccountRequestData" matInput [matDatepicker]="toAccountRequestTransactionDate" placeholder="Choose transactions end date" [(ngModel)]="toAccountRequestTransactionDateTime"
-                (ngModelChange)="modifytoAccountRequestTransactionDateTime($event)">
-              <mat-datepicker-toggle matSuffix [for]="toAccountRequestTransactionDate"></mat-datepicker-toggle>
-              <mat-datepicker #toAccountRequestTransactionDate></mat-datepicker>
+              <input id="account-access-consent-to-transaction-date" [disabled]="disabledAccountAccessConsentData"
+                matInput [matDatepicker]="toAccountAccessConsentTransactionDate" placeholder="Choose transactions end date"
+                [(ngModel)]="toAccountAccessConsentTransactionDateTime" (ngModelChange)="modifytoAccountAccessConsentTransactionDateTime($event)">
+              <mat-datepicker-toggle matSuffix [for]="toAccountAccessConsentTransactionDate"></mat-datepicker-toggle>
+              <mat-datepicker #toAccountAccessConsentTransactionDate></mat-datepicker>
             </mat-form-field>
           </div>
         </div>
@@ -53,9 +57,10 @@
       <mat-card-subtitle>
         <h6>3. Choose expiration date</h6>
       </mat-card-subtitle>
-      <div class="account-request-card-content">
+      <div class="account-access-consent-card-content">
         <mat-form-field>
-          <input id="account-request-expiration-date" [disabled]="disabledAccountRequestData" matInput [matDatepicker]="expirationPiker" placeholder="Choose expiration date" [(ngModel)]="expirationDateTime"
+          <input id="account-access-consent-expiration-date" [disabled]="disabledAccountAccessConsentData" matInput
+            [matDatepicker]="expirationPiker" placeholder="Choose expiration date" [(ngModel)]="expirationDateTime"
             (ngModelChange)="modifyExpirationDateTimee($event)">
           <mat-datepicker-toggle matSuffix [for]="expirationPiker"></mat-datepicker-toggle>
           <mat-datepicker #expirationPiker></mat-datepicker>
@@ -63,14 +68,18 @@
       </div>
     </mat-card-content>
     <mat-card-actions>
-      <button id="create-button" *ngIf="!authorizedPermissions || authorizedPermissions.length == 0 || !disabledAccountRequestData" mat-raised-button [disabled]='selectedPermissions.length == 0' (click)="createAccountRequest()">
-        <label >{{'Create' | uppercase}}</label>
+      <button id="create-button" *ngIf="!authorizedPermissions || authorizedPermissions.length == 0 || !disabledAccountAccessConsentData"
+        mat-raised-button [disabled]='selectedPermissions.length == 0' (click)="createAccountAccessConsent()">
+
+        <label>{{'Create' | uppercase}}</label>
       </button>
-      <button id="edit-button" mat-raised-button (click)="disabledAccountRequestData=!disabledAccountRequestData">
-        <label *ngIf="authorizedPermissions && authorizedPermissions.length != 0 && disabledAccountRequestData">{{'Edit' | uppercase}}</label>
+      <button id="edit-button" mat-raised-button (click)="disabledAccountAccessConsentData=!disabledAccountAccessConsentData">
+        <label *ngIf="authorizedPermissions && authorizedPermissions.length != 0 && disabledAccountAccessConsentData">{{'Edit'
+          | uppercase}}</label>
       </button>
-      <button id="cancel-button" mat-raised-button style="right: 4px; position: absolute;"  (click)="loadingAccountRequestData=false; disabledAccountRequestData=!disabledAccountRequestData; getAccountRequest()">
-        <label  *ngIf="authorizedPermissions && authorizedPermissions.length != 0 && !disabledAccountRequestData">{{'Cancel' | uppercase}}</label>
+      <button id="cancel-button" mat-raised-button style="right: 4px; position: absolute;" (click)="loadingAccountAccessConsentData=false; disabledAccountAccessConsentData=!disabledAccountAccessConsentData; getAccountAccessConsent()">
+        <label *ngIf="authorizedPermissions && authorizedPermissions.length != 0 && !disabledAccountAccessConsentData">{{'Cancel'
+          | uppercase}}</label>
       </button>
     </mat-card-actions>
   </mat-card>
@@ -84,7 +93,8 @@
         <mat-form-field class="example-full-width">
           <input class="add-account-id" matInput placeholder="Account ID" #accountId>
         </mat-form-field>
-        <button name="get_data_by_account_id" table_id="account-by-id-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getAccountById(accountId.value)">{{'Get
+        <button name="get_data_by_account_id" table_id="account-by-id-table" mat-raised-button class="header-button-right"
+          [disabled]="accountId.value.length == 0" (click)="getAccountById(accountId.value)">{{'Get
           data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
@@ -109,7 +119,7 @@
             <td mat-cell *matCellDef="let element" class="arrow-center">
               <button mat-icon-button (click)="openDataDetails(element)">
                 <i class="material-icons right">
-                  arrow_forward_ios
+                  keyboard_arrow_right
                 </i>
               </button>
             </td>
@@ -127,7 +137,8 @@
     <mat-card-header>
       <mat-card-title class="card-header-display-flex">
         <h4>Accounts</h4>
-        <button name="get_data" table_id="account-table" mat-raised-button class="header-button-right" (click)="getAccounts()">{{'Get data' | uppercase}}</button>
+        <button name="get_data" table_id="account-table" mat-raised-button class="header-button-right" (click)="getAccounts()">{{'Get
+          data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -174,7 +185,8 @@
         <mat-form-field class="example-full-width">
           <input class="add-transactions-account-id" matInput placeholder="Account ID" #accountId>
         </mat-form-field>
-        <button name="get_data_by_account_id" table_id="transactions-by-account-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getTransactionByAccountId(accountId.value)">{{'Get
+        <button name="get_data_by_account_id" table_id="transactions-by-account-table" mat-raised-button class="header-button-right"
+          [disabled]="accountId.value.length == 0" (click)="getTransactionByAccountId(accountId.value)">{{'Get
           data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
@@ -220,23 +232,24 @@
         <div class="transactions-date-interval-flex">
           <div>
             <mat-form-field>
-              <input id="transactions-from-date" matInput [matDatepicker]="fromDate" placeholder="Choose transactions start date" [(ngModel)]="fromTransactionDateTime"
-                (ngModelChange)="modifyfromTransactionDateTime($event)">
+              <input id="transactions-from-date" matInput [matDatepicker]="fromDate" placeholder="Choose transactions start date"
+                [(ngModel)]="fromTransactionDateTime" (ngModelChange)="modifyfromTransactionDateTime($event)">
               <mat-datepicker-toggle matSuffix [for]="fromDate"></mat-datepicker-toggle>
               <mat-datepicker #fromDate></mat-datepicker>
-            </mat-form-field>            
+            </mat-form-field>
           </div>
           <hr class="transactions-list-hr">
           <div>
             <mat-form-field>
-              <input id="transactions-to-date" matInput [matDatepicker]="toDate" placeholder="Choose transactions end date" [(ngModel)]="toTransactionDateTime"
-                (ngModelChange)="modifytoTransactionDateTime($event)">
+              <input id="transactions-to-date" matInput [matDatepicker]="toDate" placeholder="Choose transactions end date"
+                [(ngModel)]="toTransactionDateTime" (ngModelChange)="modifytoTransactionDateTime($event)">
               <mat-datepicker-toggle matSuffix [for]="toDate"></mat-datepicker-toggle>
               <mat-datepicker #toDate></mat-datepicker>
             </mat-form-field>
           </div>
         </div>
-        <button name="get_data" table_id="transactions-table" mat-raised-button class="header-button-right" (click)="getTransactions()">{{'Get data' | uppercase}}</button>
+        <button name="get_data" table_id="transactions-table" mat-raised-button class="header-button-right" (click)="getTransactions()">{{'Get
+          data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -284,7 +297,8 @@
         <mat-form-field class="example-full-width">
           <input id="balance-account-id" matInput placeholder="Account ID" #accountId>
         </mat-form-field>
-        <button name="get_data_by_account_id" table_id="balances-by-account-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getBalanceByAccountId(accountId.value)">{{'Get
+        <button name="get_data_by_account_id" table_id="balances-by-account-table" mat-raised-button class="header-button-right"
+          [disabled]="accountId.value.length == 0" (click)="getBalanceByAccountId(accountId.value)">{{'Get
           data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
@@ -297,11 +311,13 @@
           </ng-container>
           <ng-container matColumnDef="amount">
             <th mat-header-cell *matHeaderCellDef> Amount </th>
-            <td id="balances-by-account-id-amount" mat-cell *matCellDef="let element"> {{element.Amount.Amount}} {{element.Amount.Currency}} </td>
+            <td id="balances-by-account-id-amount" mat-cell *matCellDef="let element"> {{element.Amount.Amount}}
+              {{element.Amount.Currency}} </td>
           </ng-container>
           <ng-container matColumnDef="dateTime">
             <th mat-header-cell *matHeaderCellDef> DateTime </th>
-            <td id="balances-by-account-id-date-time" mat-cell *matCellDef="let element"> {{element.DateTime | date:'yyyy.MM.dd'}}</td>
+            <td id="balances-by-account-id-date-time" mat-cell *matCellDef="let element"> {{element.DateTime |
+              date:'yyyy.MM.dd'}}</td>
           </ng-container>
           <ng-container matColumnDef="arrow">
             <th mat-header-cell *matHeaderCellDef> Open data details </th>
@@ -325,7 +341,8 @@
     <mat-card-header>
       <mat-card-title class="card-header-display-flex">
         <h4>Balances</h4>
-        <button name="get_data" table_id="balances-table" mat-raised-button class="header-button-right" (click)="getBalances()">{{'Get data' | uppercase}}</button>
+        <button name="get_data" table_id="balances-table" mat-raised-button class="header-button-right" (click)="getBalances()">{{'Get
+          data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -337,7 +354,8 @@
           </ng-container>
           <ng-container matColumnDef="amount">
             <th mat-header-cell *matHeaderCellDef> Amount </th>
-            <td id="balances-amount" mat-cell *matCellDef="let element"> {{element.Amount.Amount}} {{element.Amount.Currency}}</td>
+            <td id="balances-amount" mat-cell *matCellDef="let element"> {{element.Amount.Amount}}
+              {{element.Amount.Currency}}</td>
           </ng-container>
           <ng-container matColumnDef="dateTime">
             <th mat-header-cell *matHeaderCellDef> DateTime </th>
@@ -371,7 +389,8 @@
         <mat-form-field class="example-full-width">
           <input id="add-beneficiaries-account-id" matInput placeholder="Account ID" #accountId>
         </mat-form-field>
-        <button name="get_data_by_account_id" table_id="beneficiaries-by-account-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getBeneficiariesByAccount(accountId.value)">{{'Get
+        <button name="get_data_by_account_id" table_id="beneficiaries-by-account-table" mat-raised-button class="header-button-right"
+          [disabled]="accountId.value.length == 0" (click)="getBeneficiariesByAccount(accountId.value)">{{'Get
           data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
@@ -390,7 +409,8 @@
           </ng-container>
           <ng-container matColumnDef="creditorAccount">
             <th mat-header-cell *matHeaderCellDef>CreditorAccount</th>
-            <td id="beneficiaries-by-account-id-creditor-account" mat-cell *matCellDef="let element"> {{element.CreditorAccount}}</td>
+            <td id="beneficiaries-by-account-id-creditor-account" mat-cell *matCellDef="let element">
+              {{element.CreditorAccount}}</td>
           </ng-container>
           <ng-container matColumnDef="arrow">
             <th mat-header-cell *matHeaderCellDef> Open data details </th>
@@ -415,7 +435,8 @@
     <mat-card-header>
       <mat-card-title class="card-header-display-flex">
         <h4>Beneficiaries</h4>
-        <button name="get_data" table_id="beneficiaries-table" mat-raised-button class="header-button-right" (click)="getBeneficiaries()">{{'Get data' | uppercase}}</button>
+        <button name="get_data" table_id="beneficiaries-table" mat-raised-button class="header-button-right" (click)="getBeneficiaries()">{{'Get
+          data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -461,7 +482,8 @@
         <mat-form-field class="example-full-width">
           <input id="add-direct-debits-account-id" matInput placeholder="Account ID" #accountId>
         </mat-form-field>
-        <button name="get_data_by_account_id" table_id="direct-debits-by-account-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getDirectDebitsByAccount(accountId.value)">{{'Get
+        <button name="get_data_by_account_id" table_id="direct-debits-by-account-table" mat-raised-button class="header-button-right"
+          [disabled]="accountId.value.length == 0" (click)="getDirectDebitsByAccount(accountId.value)">{{'Get
           data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
@@ -482,12 +504,14 @@
           </ng-container>
           <ng-container matColumnDef="amount">
             <th mat-header-cell *matHeaderCellDef> Amount </th>
-            <td id="direct-debits-by-account-id-amount" mat-cell *matCellDef="let element"> {{element.PreviousPaymentAmount.Amount}}
+            <td id="direct-debits-by-account-id-amount" mat-cell *matCellDef="let element">
+              {{element.PreviousPaymentAmount.Amount}}
               {{element.PreviousPaymentAmount.Currency}}</td>
           </ng-container>
           <ng-container matColumnDef="previousPaymentDateTime">
             <th mat-header-cell *matHeaderCellDef> PreviousPaymentDateTime </th>
-            <td id="direct-debits-by-account-id-previous-payment-date" mat-cell *matCellDef="let element"> {{element.PreviousPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+            <td id="direct-debits-by-account-id-previous-payment-date" mat-cell *matCellDef="let element">
+              {{element.PreviousPaymentDateTime | date:'yyyy.MM.dd'}}</td>
           </ng-container>
           <ng-container matColumnDef="arrow">
             <th mat-header-cell *matHeaderCellDef> Open data details </th>
@@ -511,7 +535,8 @@
     <mat-card-header>
       <mat-card-title class="card-header-display-flex">
         <h4>Direct debits</h4>
-        <button name="get_data" table_id="direct-debits-table" mat-raised-button class="header-button-right" (click)="getDirectDebits()">{{'Get data' | uppercase}}</button>
+        <button name="get_data" table_id="direct-debits-table" mat-raised-button class="header-button-right" (click)="getDirectDebits()">{{'Get
+          data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -531,12 +556,14 @@
           </ng-container>
           <ng-container matColumnDef="amount">
             <th mat-header-cell *matHeaderCellDef> Amount </th>
-            <td id="direct-debits-previous-payment-amount" mat-cell *matCellDef="let element"> {{element.PreviousPaymentAmount.Amount}}
+            <td id="direct-debits-previous-payment-amount" mat-cell *matCellDef="let element">
+              {{element.PreviousPaymentAmount.Amount}}
               {{element.PreviousPaymentAmount.Currency}}</td>
           </ng-container>
           <ng-container matColumnDef="previousPaymentDateTime">
             <th mat-header-cell *matHeaderCellDef> PreviousPaymentDateTime </th>
-            <td id="direct-debits-previous-payment-date" mat-cell *matCellDef="let element"> {{element.PreviousPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+            <td id="direct-debits-previous-payment-date" mat-cell *matCellDef="let element">
+              {{element.PreviousPaymentDateTime | date:'yyyy.MM.dd'}}</td>
           </ng-container>
           <ng-container matColumnDef="arrow">
             <th mat-header-cell *matHeaderCellDef> Open data details </th>
@@ -566,7 +593,8 @@
         <mat-form-field class="example-full-width">
           <input id="add-standing-orders-account-id" matInput placeholder="Account ID" #accountId>
         </mat-form-field>
-        <button name="get_data_by_account_id" table_id="standing-orders-by-account-table" mat-raised-button class="header-button-right" [disabled]="accountId.value.length == 0" (click)="getStandingOrdersByAccount(accountId.value)">{{'Get
+        <button name="get_data_by_account_id" table_id="standing-orders-by-account-table" mat-raised-button class="header-button-right"
+          [disabled]="accountId.value.length == 0" (click)="getStandingOrdersByAccount(accountId.value)">{{'Get
           data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
@@ -581,19 +609,23 @@
           </ng-container>
           <ng-container matColumnDef="accountId">
             <th mat-header-cell *matHeaderCellDef> AccountId </th>
-            <td id="standing-orders-by-account-id-account-id" mat-cell *matCellDef="let element"> {{element.AccountId}} </td>
+            <td id="standing-orders-by-account-id-account-id" mat-cell *matCellDef="let element"> {{element.AccountId}}
+            </td>
           </ng-container>
           <ng-container matColumnDef="firstPaymentDateTime">
             <th mat-header-cell *matHeaderCellDef> FirstPaymentDateTime </th>
-            <td id="standing-orders-by-account-id-first-payment-date" mat-cell *matCellDef="let element"> {{element.FirstPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+            <td id="standing-orders-by-account-id-first-payment-date" mat-cell *matCellDef="let element">
+              {{element.FirstPaymentDateTime | date:'yyyy.MM.dd'}}</td>
           </ng-container>
           <ng-container matColumnDef="nextPaymentDateTime">
             <th mat-header-cell *matHeaderCellDef> NextPaymentDateTime </th>
-            <td id="standing-orders-by-account-id-next-payment-date" mat-cell *matCellDef="let element"> {{element.NextPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+            <td id="standing-orders-by-account-id-next-payment-date" mat-cell *matCellDef="let element">
+              {{element.NextPaymentDateTime | date:'yyyy.MM.dd'}}</td>
           </ng-container>
           <ng-container matColumnDef="finalPaymentDateTime">
             <th mat-header-cell *matHeaderCellDef> FinalPaymentDateTime </th>
-            <td id="standing-orders-by-account-id-final-payment-date" mat-cell *matCellDef="let element"> {{element.FinalPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+            <td id="standing-orders-by-account-id-final-payment-date" mat-cell *matCellDef="let element">
+              {{element.FinalPaymentDateTime | date:'yyyy.MM.dd'}}</td>
           </ng-container>
           <ng-container matColumnDef="arrow">
             <th mat-header-cell *matHeaderCellDef> Open data details </th>
@@ -618,7 +650,8 @@
     <mat-card-header>
       <mat-card-title class="card-header-display-flex">
         <h4>Standing orders</h4>
-        <button name="get_data" table_id="standing-orders-table" mat-raised-button class="header-button-right" (click)="getStandingOrders()">{{'Get data' | uppercase}}</button>
+        <button name="get_data" table_id="standing-orders-table" mat-raised-button class="header-button-right" (click)="getStandingOrders()">{{'Get
+          data' | uppercase}}</button>
       </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -636,15 +669,18 @@
           </ng-container>
           <ng-container matColumnDef="firstPaymentDateTime">
             <th mat-header-cell *matHeaderCellDef> FirstPaymentDateTime </th>
-            <td id="standing-orders-first-payment-date" mat-cell *matCellDef="let element"> {{element.FirstPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+            <td id="standing-orders-first-payment-date" mat-cell *matCellDef="let element">
+              {{element.FirstPaymentDateTime | date:'yyyy.MM.dd'}}</td>
           </ng-container>
           <ng-container matColumnDef="nextPaymentDateTime">
             <th mat-header-cell *matHeaderCellDef> NextPaymentDateTime </th>
-            <td id="standing-orders-next-payment-date"  mat-cell *matCellDef="let element"> {{element.NextPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+            <td id="standing-orders-next-payment-date" mat-cell *matCellDef="let element">
+              {{element.NextPaymentDateTime | date:'yyyy.MM.dd'}}</td>
           </ng-container>
           <ng-container matColumnDef="finalPaymentDateTime">
             <th mat-header-cell *matHeaderCellDef> FinalPaymentDateTime </th>
-            <td id="standing-orders-final-payment-date" mat-cell *matCellDef="let element"> {{element.FinalPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+            <td id="standing-orders-final-payment-date" mat-cell *matCellDef="let element">
+              {{element.FinalPaymentDateTime | date:'yyyy.MM.dd'}}</td>
           </ng-container>
           <ng-container matColumnDef="arrow">
             <th mat-header-cell *matHeaderCellDef> Open data details </th>
@@ -663,5 +699,122 @@
         <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
       </div>
     </mat-card-content>
+  </mat-card>
+</section>
+
+
+
+
+<section *ngIf="authorizedPermissions && authorizedPermissions.includes('ReadScheduledPaymentsBasic') || authorizedPermissions.includes('ReadScheduledPaymentsDetail')">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Scheduled payment by account ID</h4>
+        <mat-form-field class="example-full-width">
+          <input id="add-scheduled-payments-account-id" matInput placeholder="Account ID" #accountId>
+        </mat-form-field>
+        <button name="get_data_by_account_id" table_id="scheduled-payment-by-account-table" mat-raised-button class="header-button-right"
+          [disabled]="accountId.value.length == 0" (click)="getScheduledPaymentByAccount(accountId.value)">{{'Get
+          data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="scheduledPaymentByAccountDataSource">
+        <table id="scheduled-payment-by-account-table" mat-table [dataSource]="scheduledPaymentByAccountDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef> AccountId </th>
+            <td id="scheduled-payment-by-account-id-account-id" mat-cell *matCellDef="let element">
+              {{element.AccountId}} </td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef> InstructedAmount </th>
+            <td id="scheduled-payment-by-account-id-scheduled-instructed-amount" mat-cell *matCellDef="let element">
+              {{element.InstructedAmount.Amount}} {{element.InstructedAmount.Currency}}</td>
+          </ng-container>
+          <ng-container matColumnDef="scheduledPaymentDateTime">
+            <th mat-header-cell *matHeaderCellDef> ScheduledPaymentDateTime </th>
+            <td id="scheduled-payment-by-account-id-scheduled-payment-date-time" mat-cell *matCellDef="let element">
+              {{element.ScheduledPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="scheduledPaymentsDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: scheduledPaymentsDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyScheduledPaymentById" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Scheduled payments</h4>
+        <button name="get_data" table_id="scheduled-payments-table" mat-raised-button class="header-button-right"
+          (click)="getScheduledPayments()">{{'Get data' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="scheduledPaymentsDataSource">
+        <table id="scheduled-payments-table" mat-table [dataSource]="scheduledPaymentsDataSource">
+          <ng-container matColumnDef="accountId">
+            <th mat-header-cell *matHeaderCellDef> AccountId </th>
+            <td id="scheduled-payment-id-account-id" mat-cell *matCellDef="let element"> {{element.AccountId}} </td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef> InstructedAmount </th>
+            <td id="scheduled-payment-by-account-id-scheduled-instructed-amount" mat-cell *matCellDef="let element">
+              {{element.InstructedAmount.Amount}} {{element.InstructedAmount.Currency}}</td>
+          </ng-container>
+          <ng-container matColumnDef="scheduledPaymentDateTime">
+            <th mat-header-cell *matHeaderCellDef> ScheduledPaymentDateTime </th>
+            <td id="scheduled-payment-id-scheduled-payment-date-time" mat-cell *matCellDef="let element">
+              {{element.ScheduledPaymentDateTime | date:'yyyy.MM.dd'}}</td>
+          </ng-container>
+          <ng-container matColumnDef="arrow">
+            <th mat-header-cell *matHeaderCellDef> Open data details </th>
+            <td mat-cell *matCellDef="let element" class="arrow-center">
+              <button class="open-data-details" mat-icon-button (click)="openDataDetails(element)">
+                <i class="material-icons right">
+                  arrow_forward_ios
+                </i>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="scheduledPaymentsDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: scheduledPaymentsDisplayedColumns;"></tr>
+        </table>
+        <div *ngIf="isEmptyScheduledPayments" class="empty-result-text">No results.</div>
+        <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</section>
+
+<section *ngIf="authorizedPermissions && authorizedPermissions.includes('ReadStatementsBasic') || authorizedPermissions.includes('ReadStatementsDetail')">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title class="card-header-display-flex">
+        <h4>Get Statements PDF</h4>
+        <mat-form-field class="example-full-width">
+          <input id="add-statements-account-id" matInput placeholder="Account ID" #accountId>
+        </mat-form-field>
+        <mat-form-field class="example-full-width">
+          <input id="add-statements-statement-id" matInput placeholder="Statement ID" #statementId>
+        </mat-form-field>
+        <button mat-raised-button class="header-button-right"
+          [disabled]="accountId.value.length == 0 || statementId.value.length == 0" (click)="getStatementsPdf(statementId.value, accountId.value)">{{'Download
+          PDF' | uppercase}}</button>
+      </mat-card-title>
+    </mat-card-header>    
   </mat-card>
 </section>

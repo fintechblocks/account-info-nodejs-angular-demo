@@ -1,28 +1,20 @@
-﻿import { AlertService } from './../_services/alert.service';
-import { StandingOrder } from './../http/model/standingOrder';
-import { StandingOrdersService } from './../http/api/standingOrders.service';
-import { DirectDebit } from './../http/model/directDebit';
-import { DirectDebitsService } from './../http/api/directDebits.service';
-import { Beneficiary } from './../http/model/beneficiary';
-import { BeneficiariesService } from './../http/api/beneficiaries.service';
-import { Balance } from './../http/model/balance';
-import { BalancesService } from './../http/api/balances.service';
-import { Permissions } from './../http/model/permissions';
-import { AccountsService } from './../http/api/accounts.service';
-import { TransactionsService } from './../http/api/transactions.service';
+﻿import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { DateAdapter, MAT_DIALOG_DATA, MatDialog, MatPaginator, MatTableDataSource } from '@angular/material';
 import { ActivatedRoute } from '@angular/router';
-import { AuthorizationService } from './../http/api/authorization.service';
-import { Data } from './../http/model/data';
-import { AccountRequestPOSTRequest } from './../http/model/accountRequestPOSTRequest';
-import { AccountRequestsService } from './../http/api/accountRequests.service';
-import { first } from 'rxjs/operators';
-import { Account } from './../http/model/account';
+import * as moment from 'moment';
+import * as FileSaver from 'file-saver';
 import { User } from '../_models';
-import { UserService } from '../_services';
-import { MatTableDataSource, MatPaginator, MatDialog, MAT_DIALOG_DATA } from '@angular/material';
-import { Component, OnInit, ViewChild, Inject, AfterViewInit } from '@angular/core';
-import { DateAdapter } from '@angular/material'
-import * as moment from 'moment'
+import { OBReadConsent1, ScheduledPaymentsService, StatementsService } from '../http';
+import { AlertService } from './../_services/alert.service';
+import { AccountAccessService } from './../http/api/accountAccess.service';
+import { AccountsService } from './../http/api/accounts.service';
+import { AuthorizationService } from './../http/api/authorization.service';
+import { BalancesService } from './../http/api/balances.service';
+import { BeneficiariesService } from './../http/api/beneficiaries.service';
+import { DirectDebitsService } from './../http/api/directDebits.service';
+import { StandingOrdersService } from './../http/api/standingOrders.service';
+import { TransactionsService } from './../http/api/transactions.service';
+import { OBExternalPermissions1Code } from './../http/model/oBExternalPermissions1Code';
 
 @Component({
     templateUrl: 'home.component.html',
@@ -35,7 +27,8 @@ export class HomeComponent implements OnInit {
     currentUser: User;
     transactions;
     emyptyAuthorization: string = '';
-    permissions = Data.PermissionsEnum;
+    fapiFinancialId: string = '';
+    permissions = OBExternalPermissions1Code;
     //add empty auth
     selectedPermissions = [];
     authorizedPermissions = [];
@@ -45,8 +38,8 @@ export class HomeComponent implements OnInit {
     fromTransactionDateTime;
 
     /**transactions in account requests interval */
-    toAccountRequestTransactionDateTime;
-    fromAccountRequestTransactionDateTime;
+    toAccountAccessConsentTransactionDateTime;
+    fromAccountAccessConsentTransactionDateTime;
 
     /**expiration date */
     expirationDateTime;
@@ -70,6 +63,9 @@ export class HomeComponent implements OnInit {
     standingOrdersDataSource;
     standingOrdersByAccountDataSource;
 
+    scheduledPaymentsDataSource;
+    scheduledPaymentByAccountDataSource
+
     /*material table columns */
     accountsDisplayedColumns: string[] = ['accountId', 'nickname', 'currency', 'arrow'];
     transactionsDisplayedColumns: string[] = ['accountId', 'amount', 'status', 'arrow'];
@@ -77,6 +73,8 @@ export class HomeComponent implements OnInit {
     beneficiariesDisplayedColumns: string[] = ['accountId', 'reference', 'creditorAccount', 'arrow'];
     directDebitsDisplayedColumns: string[] = ['accountId', 'name', 'previousPaymentDateTime', 'amount', 'arrow'];
     standingOrdersDisplayedColumns: string[] = ['accountId', 'firstPaymentDateTime', 'nextPaymentDateTime', 'finalPaymentDateTime', 'arrow'];
+    scheduledPaymentsDisplayedColumns: string[] = ['accountId', 'scheduledPaymentDateTime', 'amount', 'arrow'];
+
 
     /*material table paginators */
     @ViewChild(MatPaginator) accountsPaginator: MatPaginator;
@@ -97,6 +95,9 @@ export class HomeComponent implements OnInit {
     @ViewChild(MatPaginator) standingOrdersPaginator: MatPaginator;
     @ViewChild(MatPaginator) standingOrdersByAccountPaginator: MatPaginator;
 
+    @ViewChild(MatPaginator) scheduledPaymentsPaginator: MatPaginator;
+    @ViewChild(MatPaginator) scheduledPaymentByAccountPaginator: MatPaginator;
+
     /**No results. text */
     isEmptyAccounts: boolean = false;
     isEmptyTransactions: boolean = false;
@@ -104,6 +105,7 @@ export class HomeComponent implements OnInit {
     isEmptyBeneficiaries: boolean = false;
     isEmptyDirectDebits: boolean = false;
     isEmptyStandingOrders: boolean = false;
+    isEmptyScheduledPayments: boolean = false;
 
     /**No results. text by account id */
     isEmptyAccountsById: boolean = false;
@@ -112,16 +114,17 @@ export class HomeComponent implements OnInit {
     isEmptyBeneficiariesById: boolean = false;
     isEmptyDirectDebitsById: boolean = false;
     isEmptyStandingOrdersById: boolean = false;
+    isEmptyScheduledPaymentById: boolean = false;
 
-    accountRequestResult;
+    accountAccessConsentResult;
 
     /**account request data list ui controllers */
-    disabledAccountRequestData: boolean = false;
-    loadingAccountRequestData: boolean = true;
+    disabledAccountAccessConsentData: boolean = false;
+    loadingAccountAccessConsentData: boolean = true;
     constructor(
         private alertService: AlertService,
         private route: ActivatedRoute,
-        private _accountRequestsService: AccountRequestsService,
+        private _accountAccessService: AccountAccessService,
         private _authorizationUrlService: AuthorizationService,
         private _transactionsService: TransactionsService,
         private _accountsService: AccountsService,
@@ -130,7 +133,9 @@ export class HomeComponent implements OnInit {
         private _directDebitsService: DirectDebitsService,
         private _standingOrdersService: StandingOrdersService,
         public dialog: MatDialog,
-        private dateAdapter: DateAdapter<Date>
+        private dateAdapter: DateAdapter<Date>,
+        private _scheduledPaymentsService: ScheduledPaymentsService,
+        private _statementsService: StatementsService
     ) {
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
         this.dateAdapter.setLocale('hu');
@@ -149,35 +154,35 @@ export class HomeComponent implements OnInit {
 
             this._authorizationUrlService.postAuthorizationCallback(params).subscribe(
                 result => {
-                    this.getAccountRequest();
+                    this.getAccountAccessConsent();
                 },
                 error => {
                     this.alertService.error(error);
                 });
             this.removeParamsFromUrl();
         } else {
-            this.getAccountRequest();
+            this.getAccountAccessConsent();
         }
     }
 
-    getAccountRequest() {
-        const currentAccountRequestId = localStorage.getItem('currentAccountRequestId');
-        if (currentAccountRequestId) {
-            this._accountRequestsService.getAccountRequest(currentAccountRequestId, this.emyptyAuthorization)
+    getAccountAccessConsent() {
+        const currentConsentId = localStorage.getItem('currentConsentId');
+        if (currentConsentId) {
+            this._accountAccessService.getAccountAccessConsentsConsentId(currentConsentId, this.emyptyAuthorization)
                 .subscribe(result => {
                     this.authorizedPermissions = result.Data.Permissions;
-                    this.accountRequestResult = result;
+                    this.accountAccessConsentResult = result;
 
-                    this.toAccountRequestTransactionDateTime = result.Data.TransactionToDateTime ? moment(result.Data.TransactionToDateTime).format() : null;
-                    this.fromAccountRequestTransactionDateTime = result.Data.TransactionFromDateTime ? moment(result.Data.TransactionFromDateTime).format() : null;
+                    this.toAccountAccessConsentTransactionDateTime = result.Data.TransactionToDateTime ? moment(result.Data.TransactionToDateTime).format() : null;
+                    this.fromAccountAccessConsentTransactionDateTime = result.Data.TransactionFromDateTime ? moment(result.Data.TransactionFromDateTime).format() : null;
                     this.expirationDateTime = result.Data.ExpirationDateTime ? moment(result.Data.ExpirationDateTime).format() : null;
 
                     if (this.authorizedPermissions.length != 0) {
                         this.selectedPermissions = this.selectedPermissions.concat(this.authorizedPermissions);
                     }
 
-                    this.disabledAccountRequestData = true;
-                    this.loadingAccountRequestData = true;
+                    this.disabledAccountAccessConsentData = true;
+                    this.loadingAccountAccessConsentData = true;
                 },
                     error => {
                         this.alertService.error(error);
@@ -189,8 +194,8 @@ export class HomeComponent implements OnInit {
         window.history.pushState({}, document.title, "/" + "");
     }
 
-    createAccountRequest() {
-        const request: AccountRequestPOSTRequest = {
+    createAccountAccessConsent() {
+        const request: OBReadConsent1 = {
             Data: {
                 Permissions: this.selectedPermissions
             },
@@ -199,25 +204,25 @@ export class HomeComponent implements OnInit {
         if (this.expirationDateTime) {
             request.Data.ExpirationDateTime = this.expirationDateTime;
         }
-        if (this.fromAccountRequestTransactionDateTime) {
-            request.Data.TransactionFromDateTime = this.fromAccountRequestTransactionDateTime;
+        if (this.fromAccountAccessConsentTransactionDateTime) {
+            request.Data.TransactionFromDateTime = this.fromAccountAccessConsentTransactionDateTime;
         }
-        if (this.toAccountRequestTransactionDateTime) {
-            request.Data.TransactionToDateTime = this.toAccountRequestTransactionDateTime;
+        if (this.toAccountAccessConsentTransactionDateTime) {
+            request.Data.TransactionToDateTime = this.toAccountAccessConsentTransactionDateTime;
         }
 
-        this._accountRequestsService.createAccountRequest(request, this.emyptyAuthorization)
+        this._accountAccessService.createAccountAccessConsents(request, this.emyptyAuthorization)
             .subscribe(result => {
-                localStorage.setItem('currentAccountRequestId', result.Data.AccountRequestId);
-                this.redirectAuthorizationUrl(result.Data.AccountRequestId)
+                localStorage.setItem('currentConsentId', result.Data.ConsentId);
+                this.redirectAuthorizationUrl(result.Data.ConsentId)
             },
                 error => {
                     this.alertService.error(error);
                 });
     }
 
-    redirectAuthorizationUrl(AccountRequestId) {
-        this._authorizationUrlService.getAuthorizationUrl(AccountRequestId)
+    redirectAuthorizationUrl(ConsentId) {
+        this._authorizationUrlService.getAuthorizationUrl(ConsentId)
             .subscribe(
                 url => {
                     window.location.href = url
@@ -242,12 +247,12 @@ export class HomeComponent implements OnInit {
         return false;
     }
 
-    modifyfromAccountRequestTransactionDateTime(inputDate) {
-        this.fromAccountRequestTransactionDateTime = inputDate ? moment(inputDate).format() : undefined;
+    modifyfromAccountAccessConsentTransactionDateTime(inputDate) {
+        this.fromAccountAccessConsentTransactionDateTime = inputDate ? moment(inputDate).format() : undefined;
     }
 
-    modifytoAccountRequestTransactionDateTime(inputDate) {
-        this.toAccountRequestTransactionDateTime = inputDate ? moment(inputDate).format() : undefined;
+    modifytoAccountAccessConsentTransactionDateTime(inputDate) {
+        this.toAccountAccessConsentTransactionDateTime = inputDate ? moment(inputDate).format() : undefined;
     }
 
     modifyfromTransactionDateTime(inputDate) {
@@ -283,7 +288,7 @@ export class HomeComponent implements OnInit {
         const fromBookingDateTime = this.fromTransactionDateTime ? new Date(this.fromTransactionDateTime) : undefined;
         const toBookingDateTime = this.toTransactionDateTime ? new Date(this.toTransactionDateTime) : undefined;
 
-        this._transactionsService.getAccountTransactions(accountId.trim(), this.emyptyAuthorization, fromBookingDateTime, toBookingDateTime).subscribe(
+        this._transactionsService.getAccountsAccountIdTransactions(accountId.trim(), this.emyptyAuthorization, this.fapiFinancialId, '', '', '', fromBookingDateTime, toBookingDateTime).subscribe(
             result => {
                 if (result.Data.Transaction.length == 0) {
                     this.isEmptyTransactionsById = true;
@@ -312,7 +317,7 @@ export class HomeComponent implements OnInit {
     }
 
     getAccountById(accountId) {
-        this._accountsService.getAccount(accountId.trim(), this.emyptyAuthorization).subscribe(
+        this._accountsService.getAccountsAccountId(accountId.trim(), this.emyptyAuthorization).subscribe(
             result => {
                 if (result.Data.Account.length == 0) {
                     this.isEmptyAccountsById = true;
@@ -340,7 +345,7 @@ export class HomeComponent implements OnInit {
     }
 
     getBalanceByAccountId(accountId) {
-        this._balancesService.getAccountBalances(accountId.trim(), this.emyptyAuthorization).subscribe(
+        this._balancesService.getAccountsAccountIdBalances(accountId.trim(), this.emyptyAuthorization).subscribe(
             result => {
                 if (result.Data.Balance.length == 0) {
                     this.isEmptyBalancesById = true;
@@ -369,7 +374,7 @@ export class HomeComponent implements OnInit {
     }
 
     getBeneficiariesByAccount(accountId) {
-        this._beneficiariesService.getAccountBeneficiaries(accountId.trim(), this.emyptyAuthorization).subscribe(
+        this._beneficiariesService.getAccountsAccountIdBeneficiaries(accountId.trim(), this.emyptyAuthorization).subscribe(
             result => {
                 if (result.Data.Beneficiary.length == 0) {
                     this.isEmptyBeneficiariesById = true;
@@ -397,13 +402,41 @@ export class HomeComponent implements OnInit {
     }
 
     getDirectDebitsByAccount(accountId) {
-        this._directDebitsService.getAccountDirectDebits(accountId.trim(), this.emyptyAuthorization).subscribe(
+        this._directDebitsService.getAccountsAccountIdDirectDebits(accountId.trim(), this.emyptyAuthorization).subscribe(
             result => {
                 if (result.Data.DirectDebit.length == 0) {
                     this.isEmptyDirectDebitsById = true;
                 }
                 this.directDebitsByAccountDataSource = new MatTableDataSource<any>(result.Data.DirectDebit);
                 setTimeout(() => this.directDebitsByAccountDataSource.paginator = this.directDebitsByAccountPaginator);
+            },
+            error => {
+                this.alertService.error(error);
+            });
+    }
+
+    getScheduledPayments() {
+        this._scheduledPaymentsService.getScheduledPayments(this.emyptyAuthorization).subscribe(
+            result => {
+                this.scheduledPaymentsDataSource = new MatTableDataSource<any>(result.Data.ScheduledPayment);
+                if (result.Data.ScheduledPayment.length == 0) {
+                    this.isEmptyScheduledPayments = true;
+                }
+                setTimeout(() => this.scheduledPaymentsDataSource.paginator = this.scheduledPaymentsPaginator);
+            },
+            error => {
+                this.alertService.error(error);
+            });
+    }
+
+    getScheduledPaymentByAccount(accountId) {
+        this._scheduledPaymentsService.getAccountsAccountIdScheduledPayments(accountId.trim(), this.emyptyAuthorization).subscribe(
+            result => {
+                if (result.Data.ScheduledPayment.length == 0) {
+                    this.isEmptyScheduledPaymentById = true;
+                }
+                this.scheduledPaymentByAccountDataSource = new MatTableDataSource<any>(result.Data.ScheduledPayment);
+                setTimeout(() => this.scheduledPaymentByAccountDataSource.paginator = this.scheduledPaymentByAccountPaginator);
             },
             error => {
                 this.alertService.error(error);
@@ -425,7 +458,7 @@ export class HomeComponent implements OnInit {
     }
 
     getStandingOrdersByAccount(accountId) {
-        this._standingOrdersService.getAccountStandingOrders(accountId.trim(), this.emyptyAuthorization).subscribe(
+        this._standingOrdersService.getAccountsAccountIdStandingOrders(accountId.trim(), this.emyptyAuthorization).subscribe(
             result => {
                 if (result.Data.StandingOrder.length == 0) {
                     this.isEmptyStandingOrdersById = true;
@@ -438,10 +471,25 @@ export class HomeComponent implements OnInit {
             });
     }
 
+    getStatementsPdf(statementId, accountId) {
+        this._statementsService.getAccountsAccountIdStatementsStatementIdFile(statementId.trim(), accountId.trim(), this.emyptyAuthorization).subscribe(
+            result => {
+                this.saveAsPdf(result, 'statements');
+            },
+            error => {
+                this.alertService.error(error);
+            });
+    }
+
     openDataDetails(elementData) {
         this.dialog.open(ShowJsonDataDialog, {
             data: elementData
         });
+    }
+
+    saveAsPdf(fileBlob, filename) {
+        const blob = new Blob([fileBlob], { type: 'application/pdf' });
+        FileSaver.saveAs(blob, filename);
     }
 }
 @Component({

@@ -7,7 +7,7 @@ const schema = new Schema({
     createdDate: { type: Date, default: Date.now },
     refreshToken: {type: String},
     accessToken: {type: String},
-    accountRequestId: {type: String},
+    accountAccessConsentId: {type: String},
     state: {type: String},
     nonce: {type: String}
 });

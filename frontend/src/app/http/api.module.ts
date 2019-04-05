@@ -1,17 +1,16 @@
-import { AuthorizationService } from './api/authorization.service';
 import { NgModule, ModuleWithProviders, SkipSelf, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { Configuration } from './configuration';
 
-import { AccountRequestsService } from './api/accountRequests.service';
+import { AccountAccessService } from './api/accountAccess.service';
 import { AccountsService } from './api/accounts.service';
 import { BalancesService } from './api/balances.service';
 import { BeneficiariesService } from './api/beneficiaries.service';
 import { DirectDebitsService } from './api/directDebits.service';
-import { PermissionsService } from './api/permissions.service';
-import { ProductsService } from './api/products.service';
+import { ScheduledPaymentsService } from './api/scheduledPayments.service';
 import { StandingOrdersService } from './api/standingOrders.service';
+import { StatementsService } from './api/statements.service';
 import { TransactionsService } from './api/transactions.service';
 
 @NgModule({
@@ -19,16 +18,15 @@ import { TransactionsService } from './api/transactions.service';
   declarations: [],
   exports:      [],
   providers: [
-    AccountRequestsService,
+    AccountAccessService,
     AccountsService,
     BalancesService,
     BeneficiariesService,
     DirectDebitsService,
-    PermissionsService,
-    ProductsService,
+    ScheduledPaymentsService,
     StandingOrdersService,
-    TransactionsService,
-    AuthorizationService ]
+    StatementsService,
+    TransactionsService ]
 })
 export class ApiModule {
     public static forRoot(configurationFactory: () => Configuration): ModuleWithProviders {
