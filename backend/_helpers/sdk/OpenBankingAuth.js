@@ -10,12 +10,12 @@ module.exports.OpenBankingAuth = class OpenBankingAuth {
     this.tokenEndpointUri = tokenEndpointUri;
     this.authEndpointUri = authEndpointUri;
     this.scope = scope;
-    this.issuer = issuer; 
+    this.issuer = issuer;
     this.jwksUri = jwksUri;
   }
 
   async getAccessToken() {
-    var client = await utils.createClient(this.clientId, this.privateKey, this.tokenEndpointUri, this.authEndpointUri, this.issuer, this.jwksUri);
+    var client = await utils.createClient(this.clientId, this.privateKey, this.tokenEndpointUri, this.authEndpointUri, this.issuer, this.jwksUri, this.keyID);
     this.client = client;
     const accessTokenWithClientCredentials = await client.grant({
       grant_type: 'client_credentials',
@@ -40,7 +40,9 @@ module.exports.OpenBankingAuth = class OpenBankingAuth {
           }
         }
       }
-    }, this.privateKey, { algorithm: 'RS256' });
+    }, this.privateKey, {
+      algorithm: 'RS256'
+    });
 
     return this.client.authorizationUrl({
       scope: `openid ${this.scope}`,

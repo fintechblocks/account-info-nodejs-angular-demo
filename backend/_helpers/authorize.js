@@ -2,21 +2,24 @@ const jose = require('node-jose');
 const fs = require('fs');
 const userService = require('../users/user.service');
 const crypto = require('crypto');
-const privateKey = process.env.PRIVATE_KEY || fs.readFileSync('./test/private_key.txt', 'utf-8');
 const accountInfoRedirectUri = process.env.REDIRECT_URL;
-const API_URL = process.env.API_URL;
+const OIDC_SERVER_URL = process.env.OIDC_SERVER_URL;
+const OIDC_REALM = process.env.OIDC_REALM;
 
 /*sdk*/
 const OpenBankingAuth = require('./sdk/OpenBankingAuth').OpenBankingAuth;
-var tokenEndpointUri = API_URL + '/auth/realms/ftb-sandbox/protocol/openid-connect/token';
-var authEndpointUri = API_URL + '/auth/realms/ftb-sandbox/protocol/openid-connect/auth';
-var issuer = API_URL + '/auth/realms/ftb-sandbox';
-var jwksUri = API_URL + '/auth/realms/ftb-sandbox/protocol/openid-connect/certs';
-var accountInfoClientId = 'ftb-demo-app@account-info-1.0';
+var tokenEndpointUri = `${OIDC_SERVER_URL}/auth/realms/${OIDC_REALM}/protocol/openid-connect/token`;
+var authEndpointUri = `${OIDC_SERVER_URL}/auth/realms/${OIDC_REALM}/protocol/openid-connect/auth`;
+var issuer = `${OIDC_SERVER_URL}/auth/realms/${OIDC_REALM}`;
+var jwksUri = `${OIDC_SERVER_URL}/auth/realms/${OIDC_REALM}/protocol/openid-connect/certs`;
+var accountInfoClientId = process.env.CLIENT_ID || 'ftb-demo-app@account-info-1.0';
 var accountInfoScope = 'accounts';
 var exchangeToken;
 
-initDemoapp(privateKey).catch(function (error) {
+const privateKey = process.env.PRIVATE_KEY || fs.readFileSync('./keys/private_key.txt');
+const publicKey = process.env.PUBLIC_KEY || fs.readFileSync('./keys/public_key.txt');
+
+initDemoapp(privateKey, publicKey).catch(function (error) {
   console.log('Demo app error: ', error);
 });
 
@@ -28,14 +31,15 @@ module.exports = {
   createJWSSignatureHeader
 };
 
-async function initDemoapp(privateKey) {
-  const keyID = await generateKeyId(privateKey);
+async function initDemoapp(privateKey, publicKey) {
+  const keyID = await generateKeyId(publicKey);
   accountInfoAuth = new OpenBankingAuth(accountInfoClientId, privateKey, keyID, accountInfoRedirectUri, tokenEndpointUri, authEndpointUri, accountInfoScope, issuer, jwksUri);
 }
 
-async function generateKeyId(privateKey) {
-  var keystore = jose.JWK.createKeyStore();
-  return await keystore.add(privateKey, 'pem');
+async function generateKeyId(publicKey) {
+  const keystore = jose.JWK.createKeyStore();
+  const generatedKeystoreKey = await keystore.add(publicKey, 'pem');
+  return generatedKeystoreKey.kid;
 }
 
 async function authorize() {

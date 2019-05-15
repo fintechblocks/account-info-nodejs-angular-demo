@@ -4,7 +4,7 @@
 
 * Open *.env*
 * Set the following environment vairables properly based on exampleBank sandbox properties
-  * OIDC_SERVER_URL (e.g. https://api.sandbox.exampleBank.hu/auth)
+  * OIDC_SERVER_URL (e.g. https://api.sandbox.exampleBank.hu)
   * OIDC_WELL_KNOWN_URL (e.g. https://api.sandbox.exampleBank.hu/auth/realms/ftb-sandbox/.well-known/openid-configuration)
   * ACCOUNT_INFO_API_URL (e.g. https://api.sandbox.exampleBank.hu/account-info-1.0)
 * Custom properties
@@ -40,6 +40,12 @@ Open *hosts* file and add FRONTEND_HOST and BACKEND_HOST.
 ```frontend environment
 "apiUrl": "http://account-info-backend.ftb-local"
 ```
+## Add keys:
+Add pulic and private key to backend/keys folder
+For example: 
+public_cert.pem and private.key 
+or
+public_key.txt and private_key.txt
 
 ## Run demo application
 
