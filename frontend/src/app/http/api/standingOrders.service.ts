@@ -29,7 +29,7 @@ import { environment } from './../../../environments/environment';
 @Injectable()
 export class StandingOrdersService {
 
-    protected basePath = `${environment.apiUrl}/account-info-1.0/open-banking/v3.1/aisp`;
+    protected basePath = `${environment.apiUrl}/open-banking/v3.1/aisp`;
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
 

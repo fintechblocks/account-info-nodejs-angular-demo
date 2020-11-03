@@ -29,7 +29,7 @@ import { environment } from './../../../environments/environment';
 @Injectable()
 export class TransactionsService {
 
-    protected basePath = `${environment.apiUrl}/account-info-1.0/open-banking/v3.1/aisp`;
+    protected basePath = `${environment.apiUrl}/open-banking/v3.1/aisp`;
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
 
@@ -86,9 +86,11 @@ export class TransactionsService {
 
         let queryParameters = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
         if (fromBookingDateTime !== undefined) {
+            fromBookingDateTime.setHours(0, 0, 0, 0);
             queryParameters = queryParameters.set('fromBookingDateTime', <any>fromBookingDateTime.toISOString());
         }
         if (toBookingDateTime !== undefined) {
+            toBookingDateTime.setHours(23, 59, 59, 999);
             queryParameters = queryParameters.set('toBookingDateTime', <any>toBookingDateTime.toISOString());
         }
 
@@ -169,9 +171,11 @@ export class TransactionsService {
 
         let queryParameters = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
         if (fromBookingDateTime !== undefined) {
+            fromBookingDateTime.setHours(0, 0, 0, 0);
             queryParameters = queryParameters.set('fromBookingDateTime', <any>fromBookingDateTime.toISOString());
         }
         if (toBookingDateTime !== undefined) {
+            toBookingDateTime.setHours(23, 59, 59, 999);
             queryParameters = queryParameters.set('toBookingDateTime', <any>toBookingDateTime.toISOString());
         }
 

@@ -6,15 +6,13 @@ const {
   Issuer
 } = require('openid-client');
 const jose = require('node-jose');
-const vo = require('vo');
 const fs = require('fs');
 
 const PRIVATE_KEY = fs.readFileSync('./test/private_key.txt');
 const WELL_KNOWN_URL = 'https://oidc.sandbox.exampleBank.hu/auth/realms/ftb-sandbox/.well-known/openid-configuration';
 
 describe('new Client()', function () {
-  it('should return access and refresh token (with client_secret)', function () {
-    return vo(function* () {
+  it('should return access and refresh token (with client_secret)', async () => {
       const issuer = new Issuer({
         token_endpoint: oidc_server_url + '/auth/realms/ftb-sandbox/protocol/openid-connect/token',
         token_endpoint_auth_signing_alg_values_supported: ['HS256', 'HS384'],
@@ -27,7 +25,7 @@ describe('new Client()', function () {
         request_object_signing_alg: 'RS256'
       });
 
-      yield client.grant({
+      await client.grant({
         grant_type: 'client_credentials'
       }); 
       
@@ -37,18 +35,16 @@ describe('new Client()', function () {
         response_type: 'id_token',
         nonce: 'foobar',
         state: 'foobar'
-      });      
-    })();
+      });
   });
 
   var client;
-  it.only('should return access and refresh token (with private_key_jwt)', function () {
-    return vo(function* () {
-      const issuer = yield Issuer.discover(WELL_KNOWN_URL);
+  it('should return access and refresh token (with private_key_jwt)', async () => {
+      const issuer = await Issuer.discover(WELL_KNOWN_URL);
 
 
       const keystore = jose.JWK.createKeyStore();
-      yield keystore.add(PRIVATE_KEY, 'pem');
+      await keystore.add(PRIVATE_KEY, 'pem');
 
       client = new issuer.Client({
         client_id: 'ftb-demo-app@account-info',
@@ -56,10 +52,9 @@ describe('new Client()', function () {
       }, keystore);
 
       getAuthorizationUrl();
-      var res = yield client.grant({
+      var res = await client.grant({
         grant_type: 'client_credentials'
       })
-    })();
   });
 
   function getAuthorizationUrl(){

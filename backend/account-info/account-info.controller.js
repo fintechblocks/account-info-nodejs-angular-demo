@@ -17,7 +17,7 @@ function createAccountAccessConsent(req, res, next) {
 }
 
 function getController(req, res, next) {
-    accountInfo.proxyRequestToApi(req, res)    
+    accountInfo.proxyRequestToApi(req, res)
         .catch(err => next(err));
 }
 

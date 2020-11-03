@@ -9,7 +9,7 @@ import { environment } from './../../../environments/environment';
 
 @Injectable()
 export class AuthorizationService {
-  protected basePath = `${environment.apiUrl}/account-info-1.0`;
+  protected basePath = `${environment.apiUrl}`;
 
   public defaultHeaders = new HttpHeaders();
   public configuration = new Configuration();

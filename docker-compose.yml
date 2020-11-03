@@ -17,9 +17,7 @@ services:
     environment:
       - VIRTUAL_HOST=${FRONTEND_HOST}
     volumes:
-      - ./frontend-env.json:/usr/share/nginx/html/assets/environments/environment.json
-    links:
-      - backend
+      - ./frontend-env-local.json:/home/account-info-demo-app/deploy/dist/assets/environments/environment.json
     depends_on:
       - backend
 
@@ -30,22 +28,17 @@ services:
       - 8080
     environment:
       - VIRTUAL_HOST=${BACKEND_HOST}
-      - OIDC_SERVER_URL=${OIDC_SERVER_URL}
+      - AUTH_SERVER_BASE_PATH=${AUTH_SERVER_BASE_PATH}
       - REDIRECT_URL=${REDIRECT_URL}
       - WELL_KNOWN_URL=${OIDC_WELL_KNOWN_URL}
-      - MONGO_CONNECTION=mongodb://mongodb:27017/demo
+      - MONGO_CONNECTION=mongodb://demoappmongodb:27017/demo
       - JWT_SECRET=${JWT_SECRET}
-      - API_URL=${API_URL}
       - ACCOUNT_INFO_API_URL=${ACCOUNT_INFO_API_URL}
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - CLIENT_ID=${CLIENT_ID}
       - PORT=8080
-      - OIDC_REALM=${OIDC_REALM}
-
-    links:
-      - mongodb
     depends_on:
-      - mongodb
+      - demoappmongodb
 
-  mongodb:
+  demoappmongodb:
     image: mongo

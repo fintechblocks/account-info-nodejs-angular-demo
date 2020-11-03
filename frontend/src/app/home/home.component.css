@@ -23,11 +23,17 @@
   margin-left: 10px;
 }
 
-.h6, h6{
+.h6, h6 {
   margin-top: .5rem;
 }
 
+/deep/ .mat-progress-spinner circle, .mat-spinner circle {
+  stroke: #9bc127 !important;
+}
 
+.mat-progress-spinner {
+  margin: auto !important;
+}
 
 /*just IE 10+*/
 
@@ -90,14 +96,16 @@ a {
   margin: 0px 15px;
 }
 
-.account-access-consent-transactions-date-interval-flex{
+.account-access-consent-transactions-date-interval-flex {
   display: flex;
   max-width: 500px;
 }
-.account-access-consent-card-content{
+
+.account-access-consent-card-content {
   margin-left: 10px;
 }
-.permissions-list{
+
+.permissions-list {
   margin: 10px 10px;
 }
 
@@ -105,17 +113,17 @@ button label {
   margin-bottom: 0px;
 }
 
-.transaction-hr{
-      border-top: 1px solid grey;
-      width: 10px;
-}
-
-.transactions-hr{
+.transaction-hr {
   border-top: 1px solid grey;
   width: 10px;
 }
 
-.transactions-list-hr{
+.transactions-hr {
+  border-top: 1px solid grey;
+  width: 10px;
+}
+
+.transactions-list-hr {
   border-top: 1px solid grey;
   width: 10px;
   margin: 1.5rem 2rem;

@@ -16,9 +16,10 @@ import { HttpClient, HttpHeaders, HttpParams,
          HttpResponse, HttpEvent }                           from '@angular/common/http';
 import { CustomHttpUrlEncodingCodec }                        from '../encoder';
 
-import { Observable }                                        from 'rxjs';;
+import { Observable }                                        from 'rxjs';
 
 import { OBErrorResponse1 } from '../model/oBErrorResponse1';
+import { OBReadStatement1 } from '../model/oBReadStatement1';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
 import { Configuration }                                     from '../configuration';
@@ -28,7 +29,7 @@ import { environment } from './../../../environments/environment';
 @Injectable()
 export class StatementsService {
 
-    protected basePath = `${environment.apiUrl}/account-info-1.0/open-banking/v3.1/aisp`;
+    protected basePath = `${environment.apiUrl}/open-banking/v3.1/aisp`;
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
 
@@ -56,6 +57,94 @@ export class StatementsService {
         return false;
     }
 
+     /**
+     * Get Statements by AccountId
+     * 
+     * @param AccountId AccountId
+     * @param Authorization An Authorisation Token as per https://tools.ietf.org/html/rfc6750
+     * @param x_fapi_financial_id The unique id of the ASPSP to which the request is issued. The unique id will be issued by OB.
+     * @param x_fapi_customer_last_logged_time The time when the PSU last logged in with the TPP.  All dates in the HTTP headers are represented as RFC 7231 Full Dates. An example is below:  Sun, 10 Sep 2017 19:43:31 UTC
+     * @param x_fapi_customer_ip_address The PSU&#39;s IP address if the PSU is currently logged in with the TPP.
+     * @param x_fapi_interaction_id An RFC4122 UID used as a correlation id.
+     * @param fromStatementDateTime The UTC ISO 8601 Date Time to filter statements FROM NB Time component is optional - set to 00:00:00 for just Date. If the Date Time contains a timezone, the ASPSP must ignore the timezone component.
+     * @param toStatementDateTime The UTC ISO 8601 Date Time to filter statements TO NB Time component is optional - set to 00:00:00 for just Date. If the Date Time contains a timezone, the ASPSP must ignore the timezone component.
+     * @param x_customer_user_agent Indicates the user-agent that the PSU is using.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getAccountsAccountIdStatements(AccountId: string, Authorization: string, x_fapi_financial_id?: string, x_fapi_customer_last_logged_time?: string, x_fapi_customer_ip_address?: string, x_fapi_interaction_id?: string, fromStatementDateTime?: Date, toStatementDateTime?: Date, x_customer_user_agent?: string, observe?: 'body', reportProgress?: boolean): Observable<OBReadStatement1>;
+    public getAccountsAccountIdStatements(AccountId: string, Authorization: string, x_fapi_financial_id?: string, x_fapi_customer_last_logged_time?: string, x_fapi_customer_ip_address?: string, x_fapi_interaction_id?: string, fromStatementDateTime?: Date, toStatementDateTime?: Date, x_customer_user_agent?: string, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<OBReadStatement1>>;
+    public getAccountsAccountIdStatements(AccountId: string, Authorization: string, x_fapi_financial_id?: string, x_fapi_customer_last_logged_time?: string, x_fapi_customer_ip_address?: string, x_fapi_interaction_id?: string, fromStatementDateTime?: Date, toStatementDateTime?: Date, x_customer_user_agent?: string, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<OBReadStatement1>>;
+    public getAccountsAccountIdStatements(AccountId: string, Authorization: string, x_fapi_financial_id?: string, x_fapi_customer_last_logged_time?: string, x_fapi_customer_ip_address?: string, x_fapi_interaction_id?: string, fromStatementDateTime?: Date, toStatementDateTime?: Date, x_customer_user_agent?: string, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+        if (AccountId === null || AccountId === undefined) {
+            throw new Error('Required parameter AccountId was null or undefined when calling getAccountsAccountIdStatements.');
+        }
+        if (Authorization === null || Authorization === undefined) {
+            throw new Error('Required parameter Authorization was null or undefined when calling getAccountsAccountIdStatements.');
+        }
+
+        let queryParameters = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
+        if (fromStatementDateTime !== undefined) {
+            fromStatementDateTime.setHours(0, 0, 0, 0);
+            queryParameters = queryParameters.set('fromStatementDateTime', <any>fromStatementDateTime.toISOString());
+        }
+        if (toStatementDateTime !== undefined) {
+            toStatementDateTime.setHours(23, 59, 59, 999);
+            queryParameters = queryParameters.set('toStatementDateTime', <any>toStatementDateTime.toISOString());
+        }
+
+        let headers = this.defaultHeaders;
+        if (x_fapi_financial_id !== undefined && x_fapi_financial_id !== null) {
+            headers = headers.set('x-fapi-financial-id', String(x_fapi_financial_id));
+        }
+        if (x_fapi_customer_last_logged_time !== undefined && x_fapi_customer_last_logged_time !== null) {
+            headers = headers.set('x-fapi-customer-last-logged-time', String(x_fapi_customer_last_logged_time));
+        }
+        if (x_fapi_customer_ip_address !== undefined && x_fapi_customer_ip_address !== null) {
+            headers = headers.set('x-fapi-customer-ip-address', String(x_fapi_customer_ip_address));
+        }
+        if (x_fapi_interaction_id !== undefined && x_fapi_interaction_id !== null) {
+            headers = headers.set('x-fapi-interaction-id', String(x_fapi_interaction_id));
+        }
+        if (Authorization !== undefined && Authorization !== null) {
+            headers = headers.set('Authorization', String(Authorization));
+        }
+        if (x_customer_user_agent !== undefined && x_customer_user_agent !== null) {
+            headers = headers.set('x-customer-user-agent', String(x_customer_user_agent));
+        }
+
+        // authentication (PSUOAuth2Security) required
+        if (this.configuration.accessToken) {
+            let accessToken = typeof this.configuration.accessToken === 'function'
+                ? this.configuration.accessToken()
+                : this.configuration.accessToken;
+            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        }
+
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/json; charset=utf-8'
+        ];
+        let httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected != undefined) {
+            headers = headers.set("Accept", httpHeaderAcceptSelected);
+        }
+
+        // to determine the Content-Type header
+        let consumes: string[] = [
+            'application/json; charset=utf-8'
+        ];
+
+        return this.httpClient.get<OBReadStatement1>(`${this.basePath}/accounts/${encodeURIComponent(String(AccountId))}/statements`,
+            {
+                params: queryParameters,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
 
     /**
      * Get Statements PDF
@@ -138,4 +227,88 @@ export class StatementsService {
         );
     }
 
+    /**
+     * Get Statements
+     * 
+     * @param Authorization An Authorisation Token as per https://tools.ietf.org/html/rfc6750
+     * @param x_fapi_financial_id The unique id of the ASPSP to which the request is issued. The unique id will be issued by OB.
+     * @param x_fapi_customer_last_logged_time The time when the PSU last logged in with the TPP.  All dates in the HTTP headers are represented as RFC 7231 Full Dates. An example is below:  Sun, 10 Sep 2017 19:43:31 UTC
+     * @param x_fapi_customer_ip_address The PSU&#39;s IP address if the PSU is currently logged in with the TPP.
+     * @param x_fapi_interaction_id An RFC4122 UID used as a correlation id.
+     * @param fromStatementDateTime The UTC ISO 8601 Date Time to filter statements FROM NB Time component is optional - set to 00:00:00 for just Date. If the Date Time contains a timezone, the ASPSP must ignore the timezone component.
+     * @param toStatementDateTime The UTC ISO 8601 Date Time to filter statements TO NB Time component is optional - set to 00:00:00 for just Date. If the Date Time contains a timezone, the ASPSP must ignore the timezone component.
+     * @param x_customer_user_agent Indicates the user-agent that the PSU is using.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getStatements(Authorization: string, x_fapi_financial_id?: string, x_fapi_customer_last_logged_time?: string, x_fapi_customer_ip_address?: string, x_fapi_interaction_id?: string, fromStatementDateTime?: Date, toStatementDateTime?: Date, x_customer_user_agent?: string, observe?: 'body', reportProgress?: boolean): Observable<OBReadStatement1>;
+    public getStatements(Authorization: string, x_fapi_financial_id?: string, x_fapi_customer_last_logged_time?: string, x_fapi_customer_ip_address?: string, x_fapi_interaction_id?: string, fromStatementDateTime?: Date, toStatementDateTime?: Date, x_customer_user_agent?: string, observe?: 'response', reportProgress?: boolean): Observable<HttpResponse<OBReadStatement1>>;
+    public getStatements(Authorization: string, x_fapi_financial_id?: string, x_fapi_customer_last_logged_time?: string, x_fapi_customer_ip_address?: string, x_fapi_interaction_id?: string, fromStatementDateTime?: Date, toStatementDateTime?: Date, x_customer_user_agent?: string, observe?: 'events', reportProgress?: boolean): Observable<HttpEvent<OBReadStatement1>>;
+    public getStatements(Authorization: string, x_fapi_financial_id?: string, x_fapi_customer_last_logged_time?: string, x_fapi_customer_ip_address?: string, x_fapi_interaction_id?: string, fromStatementDateTime?: Date, toStatementDateTime?: Date, x_customer_user_agent?: string, observe: any = 'body', reportProgress: boolean = false ): Observable<any> {
+        if (Authorization === null || Authorization === undefined) {
+            throw new Error('Required parameter Authorization was null or undefined when calling getStatements.');
+        }
+
+        let queryParameters = new HttpParams({encoder: new CustomHttpUrlEncodingCodec()});
+        if (fromStatementDateTime !== undefined) {
+            fromStatementDateTime.setHours(0, 0, 0, 0);
+            queryParameters = queryParameters.set('fromStatementDateTime', <any>fromStatementDateTime.toISOString());
+        }
+        if (toStatementDateTime !== undefined) {
+            toStatementDateTime.setHours(23, 59, 59, 999);
+            queryParameters = queryParameters.set('toStatementDateTime', <any>toStatementDateTime.toISOString());
+        }
+
+        let headers = this.defaultHeaders;
+        if (x_fapi_financial_id !== undefined && x_fapi_financial_id !== null) {
+            headers = headers.set('x-fapi-financial-id', String(x_fapi_financial_id));
+        }
+        if (x_fapi_customer_last_logged_time !== undefined && x_fapi_customer_last_logged_time !== null) {
+            headers = headers.set('x-fapi-customer-last-logged-time', String(x_fapi_customer_last_logged_time));
+        }
+        if (x_fapi_customer_ip_address !== undefined && x_fapi_customer_ip_address !== null) {
+            headers = headers.set('x-fapi-customer-ip-address', String(x_fapi_customer_ip_address));
+        }
+        if (x_fapi_interaction_id !== undefined && x_fapi_interaction_id !== null) {
+            headers = headers.set('x-fapi-interaction-id', String(x_fapi_interaction_id));
+        }
+        if (Authorization !== undefined && Authorization !== null) {
+            headers = headers.set('Authorization', String(Authorization));
+        }
+        if (x_customer_user_agent !== undefined && x_customer_user_agent !== null) {
+            headers = headers.set('x-customer-user-agent', String(x_customer_user_agent));
+        }
+
+        // authentication (PSUOAuth2Security) required
+        if (this.configuration.accessToken) {
+            let accessToken = typeof this.configuration.accessToken === 'function'
+                ? this.configuration.accessToken()
+                : this.configuration.accessToken;
+            headers = headers.set('Authorization', 'Bearer ' + accessToken);
+        }
+
+        // to determine the Accept header
+        let httpHeaderAccepts: string[] = [
+            'application/json; charset=utf-8'
+        ];
+        let httpHeaderAcceptSelected: string | undefined = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        if (httpHeaderAcceptSelected != undefined) {
+            headers = headers.set("Accept", httpHeaderAcceptSelected);
+        }
+
+        // to determine the Content-Type header
+        let consumes: string[] = [
+            'application/json; charset=utf-8'
+        ];
+
+        return this.httpClient.get<OBReadStatement1>(`${this.basePath}/statements`,
+            {
+                params: queryParameters,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
 }

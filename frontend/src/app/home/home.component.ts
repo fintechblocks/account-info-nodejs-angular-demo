@@ -22,6 +22,7 @@ import { OBExternalPermissions1Code } from './../http/model/oBExternalPermission
 })
 
 export class HomeComponent implements OnInit {
+    blackListForPermissions = ['ReadProducts', 'ReadPartyPSU', 'ReadParty', 'ReadPAN', 'ReadOffers'];
     //enum ngfor 
     keys = Object.keys;
     currentUser: User;
@@ -37,6 +38,18 @@ export class HomeComponent implements OnInit {
     toTransactionDateTime;
     fromTransactionDateTime;
 
+    /**transactions by account interval */
+    toTransactionByAccountDateTime;
+    fromTransactionByAccountDateTime;
+
+    /**statements interval */
+    toStatementDate;
+    fromStatementDate;
+
+    /**statements by account interval */
+    toStatementByAccountDateTime;
+    fromStatementByAccountDateTime;
+
     /**transactions in account requests interval */
     toAccountAccessConsentTransactionDateTime;
     fromAccountAccessConsentTransactionDateTime;
@@ -50,6 +63,9 @@ export class HomeComponent implements OnInit {
 
     transactionsDataSource;
     transactionsByAccountDataSource;
+
+    statementsByAccountDataSource;
+    statementsDataSource;
 
     balancesDataSource;
     balancesByAccountDataSource;
@@ -74,33 +90,38 @@ export class HomeComponent implements OnInit {
     directDebitsDisplayedColumns: string[] = ['accountId', 'name', 'previousPaymentDateTime', 'amount', 'arrow'];
     standingOrdersDisplayedColumns: string[] = ['accountId', 'firstPaymentDateTime', 'nextPaymentDateTime', 'finalPaymentDateTime', 'arrow'];
     scheduledPaymentsDisplayedColumns: string[] = ['accountId', 'scheduledPaymentDateTime', 'amount', 'arrow'];
+    statementsDisplayedColumns: string[] = ['accountId', 'type', 'reference', 'creationdate', 'enddate', 'arrow'];
 
 
     /*material table paginators */
-    @ViewChild(MatPaginator) accountsPaginator: MatPaginator;
-    @ViewChild(MatPaginator) accountPaginator: MatPaginator;
+    @ViewChild('accountsPaginator') accountsPaginator: MatPaginator;
+    @ViewChild('accountPaginator') accountPaginator: MatPaginator;
 
-    @ViewChild(MatPaginator) balancesPaginator: MatPaginator;
-    @ViewChild(MatPaginator) balancesByAccountPaginator: MatPaginator;
+    @ViewChild('balancesPaginator') balancesPaginator: MatPaginator;
+    @ViewChild('balancesByAccountPaginator') balancesByAccountPaginator: MatPaginator;
 
-    @ViewChild(MatPaginator) transactionsPaginator: MatPaginator;
-    @ViewChild(MatPaginator) transactionsByAccountPaginator: MatPaginator;
+    @ViewChild('transactionsPaginator') transactionsPaginator: MatPaginator;
+    @ViewChild('transactionsByAccountPaginator') transactionsByAccountPaginator: MatPaginator;
 
-    @ViewChild(MatPaginator) beneficiariesPaginator: MatPaginator;
-    @ViewChild(MatPaginator) beneficiariesByAccountPaginator: MatPaginator;
+    @ViewChild('beneficiariesPaginator') beneficiariesPaginator: MatPaginator;
+    @ViewChild('beneficiariesByAccountPaginator') beneficiariesByAccountPaginator: MatPaginator;
 
-    @ViewChild(MatPaginator) directDebitsPaginator: MatPaginator;
-    @ViewChild(MatPaginator) directDebitsByAccountPaginator: MatPaginator;
+    @ViewChild('directDebitsPaginator') directDebitsPaginator: MatPaginator;
+    @ViewChild('directDebitsByAccountPaginator') directDebitsByAccountPaginator: MatPaginator;
 
-    @ViewChild(MatPaginator) standingOrdersPaginator: MatPaginator;
-    @ViewChild(MatPaginator) standingOrdersByAccountPaginator: MatPaginator;
+    @ViewChild('standingOrdersPaginator') standingOrdersPaginator: MatPaginator;
+    @ViewChild('standingOrdersByAccountPaginator') standingOrdersByAccountPaginator: MatPaginator;
 
-    @ViewChild(MatPaginator) scheduledPaymentsPaginator: MatPaginator;
-    @ViewChild(MatPaginator) scheduledPaymentByAccountPaginator: MatPaginator;
+    @ViewChild('scheduledPaymentsPaginator') scheduledPaymentsPaginator: MatPaginator;
+    @ViewChild('scheduledPaymentByAccountPaginator') scheduledPaymentByAccountPaginator: MatPaginator;
+
+    @ViewChild('statementsPaginator') statementsPaginator: MatPaginator;
+    @ViewChild('statementsByAccountPaginator') statementsByAccountPaginator: MatPaginator;
 
     /**No results. text */
     isEmptyAccounts: boolean = false;
     isEmptyTransactions: boolean = false;
+    isEmptyStatements: boolean = false;
     isEmptyBalances: boolean = false;
     isEmptyBeneficiaries: boolean = false;
     isEmptyDirectDebits: boolean = false;
@@ -110,6 +131,7 @@ export class HomeComponent implements OnInit {
     /**No results. text by account id */
     isEmptyAccountsById: boolean = false;
     isEmptyTransactionsById: boolean = false;
+    isEmptyStatementsById: boolean = false;
     isEmptyBalancesById: boolean = false;
     isEmptyBeneficiariesById: boolean = false;
     isEmptyDirectDebitsById: boolean = false;
@@ -118,9 +140,10 @@ export class HomeComponent implements OnInit {
 
     accountAccessConsentResult;
 
+    showLoadingIndicator: Boolean = true;
+
     /**account request data list ui controllers */
     disabledAccountAccessConsentData: boolean = false;
-    loadingAccountAccessConsentData: boolean = true;
     constructor(
         private alertService: AlertService,
         private route: ActivatedRoute,
@@ -145,24 +168,28 @@ export class HomeComponent implements OnInit {
         this.checkQueryParams();
     }
 
+    blackListPermissions(permission) {
+        return this.blackListForPermissions.includes(permission);
+    }
+
     checkQueryParams() {
-        const url = window.location.href;
-        if (url.includes("state")) {
-            const state = url.split("&")[0].split("=")[1];
-            const code = url.split("&")[1].split("=")[1];
-            let params = { state: state, code: code };
+      this.route.queryParams.subscribe(queryParams => {
+        if (queryParams.state) {
+            let params = { state: queryParams.state, code: queryParams.code };
 
             this._authorizationUrlService.postAuthorizationCallback(params).subscribe(
                 result => {
                     this.getAccountAccessConsent();
                 },
                 error => {
+                    this.showLoadingIndicator = false;
                     this.alertService.error(error);
                 });
             this.removeParamsFromUrl();
         } else {
             this.getAccountAccessConsent();
         }
+      });
     }
 
     getAccountAccessConsent() {
@@ -176,22 +203,24 @@ export class HomeComponent implements OnInit {
                     this.toAccountAccessConsentTransactionDateTime = result.Data.TransactionToDateTime ? moment(result.Data.TransactionToDateTime).format() : null;
                     this.fromAccountAccessConsentTransactionDateTime = result.Data.TransactionFromDateTime ? moment(result.Data.TransactionFromDateTime).format() : null;
                     this.expirationDateTime = result.Data.ExpirationDateTime ? moment(result.Data.ExpirationDateTime).format() : null;
-
                     if (this.authorizedPermissions.length != 0) {
                         this.selectedPermissions = this.selectedPermissions.concat(this.authorizedPermissions);
                     }
 
                     this.disabledAccountAccessConsentData = true;
-                    this.loadingAccountAccessConsentData = true;
+                    this.showLoadingIndicator = false;
                 },
                     error => {
+                        this.showLoadingIndicator = false;
                         this.alertService.error(error);
                     });
+        } else {
+            this.showLoadingIndicator = false;
         }
     }
 
     removeParamsFromUrl() {
-        window.history.pushState({}, document.title, "/" + "");
+       window.history.pushState({}, document.title, "/" + "");
     }
 
     createAccountAccessConsent() {
@@ -202,13 +231,19 @@ export class HomeComponent implements OnInit {
             Risk: {}
         }
         if (this.expirationDateTime) {
-            request.Data.ExpirationDateTime = this.expirationDateTime;
+            const expDateTime = new Date(this.expirationDateTime);
+            expDateTime.setHours(23, 59, 59, 999);
+            request.Data.ExpirationDateTime = expDateTime;
         }
         if (this.fromAccountAccessConsentTransactionDateTime) {
-            request.Data.TransactionFromDateTime = this.fromAccountAccessConsentTransactionDateTime;
+            const fromDateTime = new Date(this.fromAccountAccessConsentTransactionDateTime);
+            fromDateTime.setHours(0, 0, 0, 0);
+            request.Data.TransactionFromDateTime = fromDateTime;
         }
         if (this.toAccountAccessConsentTransactionDateTime) {
-            request.Data.TransactionToDateTime = this.toAccountAccessConsentTransactionDateTime;
+            const toDateTime = new Date(this.toAccountAccessConsentTransactionDateTime);
+            toDateTime.setHours(23, 59, 59, 999);
+            request.Data.TransactionToDateTime = toDateTime;
         }
 
         this._accountAccessService.createAccountAccessConsents(request, this.emyptyAuthorization)
@@ -233,10 +268,12 @@ export class HomeComponent implements OnInit {
     }
 
     selectPermission(permission) {
-        if (!this.selectedPermissions.includes(permission)) {
-            this.selectedPermissions.push(permission);
-        } else {
-            this.selectedPermissions = this.selectedPermissions.filter(item => item !== permission)
+        if (!this.disabledAccountAccessConsentData) {
+            if (!this.selectedPermissions.includes(permission)) {
+                this.selectedPermissions.push(permission);
+            } else {
+                this.selectedPermissions = this.selectedPermissions.filter(item => item !== permission)
+            }
         }
     }
 
@@ -248,29 +285,52 @@ export class HomeComponent implements OnInit {
     }
 
     modifyfromAccountAccessConsentTransactionDateTime(inputDate) {
-        this.fromAccountAccessConsentTransactionDateTime = inputDate ? moment(inputDate).format() : undefined;
+        this.fromAccountAccessConsentTransactionDateTime = inputDate;
     }
 
     modifytoAccountAccessConsentTransactionDateTime(inputDate) {
-        this.toAccountAccessConsentTransactionDateTime = inputDate ? moment(inputDate).format() : undefined;
+        this.toAccountAccessConsentTransactionDateTime = inputDate;
     }
 
     modifyfromTransactionDateTime(inputDate) {
-        this.fromTransactionDateTime = inputDate ? moment(inputDate).format() : undefined;
+        this.fromTransactionDateTime = inputDate;
     }
 
     modifytoTransactionDateTime(inputDate) {
-        this.toTransactionDateTime = inputDate ? moment(inputDate).format() : undefined;
+        this.toTransactionDateTime = inputDate;
+    }
+
+    modifyfromTransactionByAccountDateTime(inputDate) {
+      this.fromTransactionByAccountDateTime = inputDate;
+    }
+
+    modifytoTransactionByAccountDateTime(inputDate) {
+      this.toTransactionByAccountDateTime = inputDate;
+    }
+
+    modifyfromStatementDateTime(inputDate) {
+        this.fromStatementDate = inputDate;
+    }
+
+    modifytoStatementDateTime(inputDate) {
+        this.toStatementDate = inputDate;
+    }
+
+    modifyfromStatementByAccountDateTime(inputDate) {
+        this.fromStatementByAccountDateTime = inputDate;
+    }
+
+    modifytoStatementByAccountDateTime(inputDate) {
+        this.toStatementByAccountDateTime = inputDate;
     }
 
     modifyExpirationDateTimee(inputDate) {
-        this.expirationDateTime = inputDate ? moment(inputDate).format() : null;
+        this.expirationDateTime = inputDate;
     }
 
     getTransactions() {
         const fromBookingDateTime = this.fromTransactionDateTime ? new Date(this.fromTransactionDateTime) : undefined;
         const toBookingDateTime = this.toTransactionDateTime ? new Date(this.toTransactionDateTime) : undefined;
-
         this._transactionsService.getTransactions(this.emyptyAuthorization, '', '', '', '', fromBookingDateTime, toBookingDateTime).subscribe(
             result => {
                 this.transactionsDataSource = new MatTableDataSource<any>(result.Data.Transaction);
@@ -285,8 +345,8 @@ export class HomeComponent implements OnInit {
     }
 
     getTransactionByAccountId(accountId) {
-        const fromBookingDateTime = this.fromTransactionDateTime ? new Date(this.fromTransactionDateTime) : undefined;
-        const toBookingDateTime = this.toTransactionDateTime ? new Date(this.toTransactionDateTime) : undefined;
+        const fromBookingDateTime = this.fromTransactionByAccountDateTime ? new Date(this.fromTransactionByAccountDateTime) : undefined;
+        const toBookingDateTime = this.toTransactionByAccountDateTime ? new Date(this.toTransactionByAccountDateTime) : undefined;
 
         this._transactionsService.getAccountsAccountIdTransactions(accountId.trim(), this.emyptyAuthorization, this.fapiFinancialId, '', '', '', fromBookingDateTime, toBookingDateTime).subscribe(
             result => {
@@ -475,6 +535,41 @@ export class HomeComponent implements OnInit {
         this._statementsService.getAccountsAccountIdStatementsStatementIdFile(statementId.trim(), accountId.trim(), this.emyptyAuthorization).subscribe(
             result => {
                 this.saveAsPdf(result, 'statements');
+            },
+            error => {
+                this.alertService.error(error);
+            });
+    }
+
+    getStatementsByAccountId(accountId) {
+        const fromStatementByAccountDateTime = this.fromStatementByAccountDateTime ? new Date(this.fromStatementByAccountDateTime) : undefined;
+        const toStatementByAccountDateTime = this.toStatementByAccountDateTime ? new Date(this.toStatementByAccountDateTime) : undefined;
+
+        this._statementsService.getAccountsAccountIdStatements(accountId.trim(), this.emyptyAuthorization, this.fapiFinancialId, '', '', '', fromStatementByAccountDateTime, toStatementByAccountDateTime).subscribe(
+            result => {
+                if (result.Data.Statement.length == 0) {
+                    this.isEmptyStatementsById = true;
+                }
+
+                this.statementsByAccountDataSource = new MatTableDataSource<any>(result.Data.Statement);
+                setTimeout(() => this.statementsByAccountDataSource.paginator = this.statementsByAccountPaginator);
+            },
+            error => {
+                this.alertService.error(error);
+            });
+    }
+
+    getStatements() {
+        const fromStatementDateTime = this.fromStatementDate ? new Date(this.fromStatementDate) : undefined;
+        const toStatementDateTime = this.toStatementDate ? new Date(this.toStatementDate) : undefined;
+
+        this._statementsService.getStatements(this.emyptyAuthorization, this.fapiFinancialId, '', '', '', fromStatementDateTime, toStatementDateTime).subscribe(
+            result => {
+                if (result.Data.Statement.length == 0) {
+                    this.isEmptyStatements = true;
+                }
+                this.statementsDataSource = new MatTableDataSource<any>(result.Data.Statement);
+                setTimeout(() => this.statementsDataSource.paginator = this.statementsPaginator);
             },
             error => {
                 this.alertService.error(error);

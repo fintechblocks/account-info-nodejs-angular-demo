@@ -30,13 +30,13 @@ import { environment } from './../../../environments/environment';
 @Injectable()
 export class AccountAccessService {
 
-    protected basePath = environment.apiUrl + '/account-info-1.0/open-banking/v3.1/aisp';
+    protected basePath = `${environment.apiUrl}/open-banking/v3.1/aisp`;
     public defaultHeaders = new HttpHeaders();
     public configuration = new Configuration();
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string, @Optional() configuration: Configuration) {
         if (basePath) {
-            this.basePath = basePath + '/account-info-1.0/open-banking/v3.1/aisp';
+            this.basePath = `${basePath}/open-banking/v3.1/aisp`;
         }
         if (configuration) {
             this.configuration = configuration;

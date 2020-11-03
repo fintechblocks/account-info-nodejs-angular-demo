@@ -1,7 +1,7 @@
 ﻿import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { DateAdapter, MatButtonModule, MatCardModule, MatCheckboxModule, MatDatepickerModule, MatDialogModule, MatInputModule, MatNativeDateModule, MatPaginatorModule, MatTableModule, NativeDateAdapter } from '@angular/material';
+import { DateAdapter, MatButtonModule, MatCardModule, MatCheckboxModule, MatDatepickerModule, MatDialogModule, MatInputModule, MatNativeDateModule, MatPaginatorModule, MatTableModule, MatProgressSpinnerModule } from '@angular/material';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AppComponent } from './app.component';
@@ -16,8 +16,7 @@ import { AlertComponent } from './_directives';
 import { AuthGuard } from './_guards';
 import { ErrorInterceptor, JwtInterceptor } from './_helpers';
 import { AlertService, AuthenticationService, UserService } from './_services';
-
-
+import { MatMomentDateModule, MomentDateAdapter } from '@angular/material-moment-adapter'
 
 
 @NgModule({
@@ -35,9 +34,11 @@ import { AlertService, AuthenticationService, UserService } from './_services';
         MatInputModule,
         MatDialogModule,
         MatDatepickerModule,
-        MatNativeDateModule,        
+        MatNativeDateModule,    
+        MatProgressSpinnerModule,    
         FormsModule,
         routing,
+        MatMomentDateModule
     ],
     declarations: [
         AppComponent,
@@ -53,7 +54,7 @@ import { AlertService, AuthenticationService, UserService } from './_services';
         AuthenticationService,
         AuthorizationService,
         UserService,
-        { provide: DateAdapter, useClass: NativeDateAdapter },
+        { provide: DateAdapter, useClass: MomentDateAdapter },
         { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true }
     ],

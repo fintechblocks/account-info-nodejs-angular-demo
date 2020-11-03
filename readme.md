@@ -4,7 +4,7 @@
 
 * Open *.env*
 * Set the following environment vairables properly based on exampleBank sandbox properties
-  * OIDC_SERVER_URL (e.g. https://api.sandbox.exampleBank.hu)
+  * AUTH_SERVER_BASE_PATH (e.g. https://api.sandbox.exampleBank.hu/auth/realms/ftb-sandbox)
   * OIDC_WELL_KNOWN_URL (e.g. https://api.sandbox.exampleBank.hu/auth/realms/ftb-sandbox/.well-known/openid-configuration)
   * ACCOUNT_INFO_API_URL (e.g. https://api.sandbox.exampleBank.hu/account-info-1.0)
 * Custom properties
@@ -30,9 +30,9 @@ Open *hosts* file and add FRONTEND_HOST and BACKEND_HOST.
 127.0.0.1 account-info-backend.ftb-local
 ```
 
-## Set backend url for frontend
+## Set backend url for frontend for frontend for LOCAL docker-compose.yml (without https)
 
-* Open *frontend-env.json*
+* Open *frontend-env-local.json*
 * *apiUrl* is equal to BACKEND_HOST
 
 ### Example
